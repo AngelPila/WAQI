@@ -15,6 +15,7 @@ const sampleProducts: Product[] = [
     qty: '50 Ton',
     rating: 950,
     icon: '🌽',
+    category: 'Granos',
   },
   {
     id: 'p2',
@@ -26,6 +27,7 @@ const sampleProducts: Product[] = [
     qty: '5 Ton',
     rating: 880,
     icon: '🍫',
+    category: 'Frutas', // Cacao often grouped with fruits or specific category
   },
   {
     id: 'p3',
@@ -37,19 +39,102 @@ const sampleProducts: Product[] = [
     qty: '120 Ton',
     rating: 910,
     icon: '🌱',
+    category: 'Granos',
+  },
+  {
+    id: 'p4',
+    title: 'Arroz Grano Largo',
+    price: '$35',
+    unit: 'saca',
+    location: 'Daule, Guayas',
+    seller: 'Arrocera El Triunfo',
+    qty: '200 Ton',
+    rating: 930,
+    icon: '🍚',
+    category: 'Granos',
+  },
+  {
+    id: 'p5',
+    title: 'Banano Cavendish',
+    price: '$6.50',
+    unit: 'caja',
+    location: 'Machala, El Oro',
+    seller: 'Bananas del Sur',
+    qty: '500 Cajas',
+    rating: 960,
+    icon: '🍌',
+    category: 'Frutas',
+  },
+  {
+    id: 'p6',
+    title: 'Café Arábigo Lavado',
+    price: '$180',
+    unit: 'qq',
+    location: 'Loja',
+    seller: 'Café de Altura',
+    qty: '20 Ton',
+    rating: 980,
+    icon: '☕',
+    category: 'Granos',
+  },
+  {
+    id: 'p7',
+    title: 'Plátano Barraganete',
+    price: '$4.50',
+    unit: 'racimo',
+    location: 'El Carmen, Manabí',
+    seller: 'Asoc. Plataneros',
+    qty: '1000 Racimos',
+    rating: 900,
+    icon: '🍌',
+    category: 'Frutas',
+  },
+  {
+    id: 'p8',
+    title: 'Tomate Riñón',
+    price: '$12',
+    unit: 'caja',
+    location: 'Riobamba',
+    seller: 'Horticultores Andinos',
+    qty: '50 Cajas',
+    rating: 890,
+    icon: '🍅',
+    category: 'Vegetales',
   },
 ];
 
 export default function Marketplace() {
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [products, setProducts] = useState<Product[]>(sampleProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
+  // Unified filter function
+  function filterProducts(text: string, category: string) {
+    let filtered = sampleProducts;
+
+    // Filter by category
+    if (category !== 'Todos') {
+      filtered = filtered.filter(p => p.category === category);
+    }
+
+    // Filter by search text
+    const q = text.trim().toLowerCase();
+    if (q) {
+      filtered = filtered.filter(p => p.title.toLowerCase().includes(q));
+    }
+
+    setProducts(filtered);
+  }
+
   function handleSearch(text: string) {
     setQuery(text);
-    const q = text.trim().toLowerCase();
-    if (!q) return setProducts(sampleProducts);
-    setProducts(sampleProducts.filter(p => p.title.toLowerCase().includes(q)));
+    filterProducts(text, selectedCategory);
+  }
+
+  function handleCategoryChange(category: string) {
+    setSelectedCategory(category);
+    filterProducts(query, category);
   }
 
   return (
@@ -70,7 +155,7 @@ export default function Marketplace() {
         </View>
       </View>
 
-      <CategoryTabs onChange={c => { /* placeholder */ }} />
+      <CategoryTabs onChange={handleCategoryChange} />
 
       <FlatList
         data={products}
@@ -91,13 +176,7 @@ export default function Marketplace() {
         <ProductDetail product={selectedProduct} visible={!!selectedProduct} onClose={() => setSelectedProduct(null)} />
       ) : null}
 
-      <View style={styles.bottomNav}>
-        <Text style={styles.navItem}>Inicio</Text>
-        <Text style={styles.navItem}>Comunidad</Text>
-        <View style={styles.fab}><Text style={{ color: '#fff', fontSize: 20 }}>✳️</Text></View>
-        <Text style={styles.navItem}>IA</Text>
-        <Text style={styles.navItem}>Perfil</Text>
-      </View>
+
     </SafeAreaView>
   );
 }
@@ -119,31 +198,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#0ea37a',
     padding: 12,
     borderRadius: 12,
-  },
-  bottomNav: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 12,
-    height: 60,
-    marginHorizontal: 16,
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-  },
-  navItem: { color: '#0b6b4a', fontWeight: '700' },
-  fab: {
-    position: 'absolute',
-    alignSelf: 'center',
-    bottom: 20,
-    backgroundColor: '#0ea37a',
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
   },
 });
