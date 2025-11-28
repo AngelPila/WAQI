@@ -1,111 +1,217 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
+import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 interface AgroScoreGaugeProps {
-  score: number; // 0 to 1000
+  score: number;
   maxScore?: number;
   size?: number;
   onClick?: () => void;
   variant?: 'card' | 'full';
 }
 
-export const AgroScoreGauge: React.FC<AgroScoreGaugeProps> = ({ 
-  score, 
-  maxScore = 1000, 
+export const AgroScoreGauge: React.FC<AgroScoreGaugeProps> = ({
+  score,
+  maxScore = 1000,
   size = 260,
   onClick,
-  variant = 'card'
+  variant = 'card',
 }) => {
   const radius = 90;
   const stroke = 14;
   const normalizedScore = (score / maxScore) * 100;
-  
-  // Arc calculation (Semi-circle 180 deg)
-  const circumference = Math.PI * radius; 
+
+  const circumference = Math.PI * radius;
   const dashOffset = circumference - (normalizedScore / 100) * circumference;
 
-  // Color logic
   const getColor = (val: number) => {
-    if (val >= 800) return '#22c55e'; // Green
-    if (val >= 600) return '#eab308'; // Yellow
-    return '#ef4444'; // Red
+    if (val >= 800) return '#22c55e';
+    if (val >= 600) return '#eab308';
+    return '#ef4444';
   };
   const color = getColor(score);
 
-  const Container = variant === 'card' ? 'div' : 'div';
-  const containerClasses = variant === 'card' 
-    ? "bg-white rounded-3xl p-6 shadow-xl border border-gray-100 flex flex-col items-center justify-center relative overflow-hidden cursor-pointer active:scale-95 transition-transform mx-auto"
-    : "flex flex-col items-center justify-center relative";
+  const getLabel = (val: number) => {
+    if (val >= 800) return 'Excelente';
+    if (val >= 600) return 'Bueno';
+    return 'Riesgo';
+  };
+
+  const Container = onClick ? TouchableOpacity : View;
 
   return (
-    <Container 
-      onClick={onClick}
-      className={containerClasses}
-      style={{ width: '100%', maxWidth: '350px' }}
+    <Container
+      onPress={onClick}
+      style={[styles.container, variant === 'card' && styles.cardContainer]}
+      activeOpacity={0.95}
     >
-      {/* Header */}
       {variant === 'card' && (
-        <div className="w-full flex justify-between items-start mb-2 z-10">
-          <h3 className="text-xl font-bold text-gray-900">Mis finanzas</h3>
-        </div>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mis finanzas</Text>
+        </View>
       )}
 
-      {/* Gauge Container */}
-      <div className="relative flex items-center justify-center mt-4" style={{ height: size / 1.8, width: size }}>
-        <svg width={size} height={size} viewBox="0 0 200 200" className="transform rotate-180 origin-center">
-          <defs>
-            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ef4444" />
-              <stop offset="50%" stopColor="#eab308" />
-              <stop offset="100%" stopColor="#22c55e" />
-            </linearGradient>
-          </defs>
-          
+      <View style={[styles.gaugeContainer, { height: size / 1.8, width: size }]}>
+        <Svg width={size} height={size} viewBox="0 0 200 200" style={styles.svg}>
+          <Defs>
+            <LinearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor="#ef4444" />
+              <Stop offset="50%" stopColor="#eab308" />
+              <Stop offset="100%" stopColor="#22c55e" />
+            </LinearGradient>
+          </Defs>
+
           {/* Track */}
-          <path
+          <Path
             d="M 10,100 A 90,90 0 0,1 190,100"
             fill="none"
             stroke="#f3f4f6"
             strokeWidth={stroke}
             strokeLinecap="round"
           />
-          
+
           {/* Progress */}
-          <path
+          <Path
             d="M 10,100 A 90,90 0 0,1 190,100"
             fill="none"
             stroke="url(#scoreGradient)"
             strokeWidth={stroke}
             strokeLinecap="round"
-            strokeDasharray={circumference}
+            strokeDasharray={`${circumference}`}
             strokeDashoffset={dashOffset}
-            className="transition-all duration-1000 ease-out"
           />
-        </svg>
+        </Svg>
 
-        {/* Center Text */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-8 text-center z-10">
-          <span className="text-6xl font-extrabold text-gray-800 tracking-tighter block leading-none">{score}</span>
-          <span className="text-lg font-bold mt-1 block" style={{ color }}>
-            {score >= 800 ? 'Excelente' : score >= 600 ? 'Bueno' : 'Riesgo'}
-          </span>
-        </div>
-      </div>
+        <View style={styles.centerText}>
+          <Text style={styles.scoreText}>{score}</Text>
+          <Text style={[styles.labelText, { color }]}>{getLabel(score)}</Text>
+        </View>
+      </View>
 
-      <div className="text-center z-10 -mt-6">
-        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Score crediticio</p>
-        <button className="text-xs text-blue-500 mt-2 font-medium flex items-center gap-1 mx-auto hover:underline">
-          ¿Qué significa este número? <ChevronRight size={12} />
-        </button>
-      </div>
+      <View style={styles.footer}>
+        <Text style={styles.footerLabel}>Score crediticio</Text>
+        <TouchableOpacity style={styles.helpButton}>
+          <Text style={styles.helpText}>¿Qué significa este número?</Text>
+          <ChevronRight color="#3b82f6" size={12} />
+        </TouchableOpacity>
+      </View>
 
-      {/* Footer Info */}
       {variant === 'card' && (
-        <div className="w-full border-t border-gray-100 mt-6 pt-4 flex justify-between items-center text-xs text-gray-400 z-10">
-          <span className="font-extrabold text-red-700 tracking-tighter text-sm">WAQI<span className="text-gray-400 font-normal">Score</span></span>
-          <span>Actualizado: 25/06/2024</span>
-        </div>
+        <View style={styles.cardFooter}>
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandWAQI}>WAQI</Text>
+            <Text style={styles.brandScore}>Score</Text>
+          </View>
+          <Text style={styles.updateText}>Actualizado: 25/06/2024</Text>
+        </View>
       )}
     </Container>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    width: '100%',
+    maxWidth: 350,
+  },
+  header: {
+    width: '100%',
+    marginBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  gaugeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  svg: {
+    transform: [{ rotate: '180deg' }],
+  },
+  centerText: {
+    position: 'absolute',
+    alignItems: 'center',
+    top: '50%',
+    marginTop: -32,
+  },
+  scoreText: {
+    fontSize: 56,
+    fontWeight: '800',
+    color: '#1f2937',
+    letterSpacing: -2,
+  },
+  labelText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: -24,
+  },
+  footerLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  helpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 4,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
+  cardFooter: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  brandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  brandWAQI: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#b91c1c',
+    letterSpacing: -0.5,
+  },
+  brandScore: {
+    fontSize: 14,
+    color: '#9ca3af',
+    fontWeight: 'normal',
+  },
+  updateText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+});
