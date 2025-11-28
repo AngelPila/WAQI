@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Leaf, ArrowRight, Sprout, ShoppingBag, TrendingUp, CheckCircle } from 'lucide-react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { Leaf, ArrowRight, Sprout, ShoppingBag, TrendingUp, CheckCircle } from 'lucide-react-native';
 import { UserRole } from '../types';
 
 interface OnboardingProps {
   onComplete: (role: UserRole) => void;
 }
+
+const { width } = Dimensions.get('window');
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [step, setStep] = useState(0); // 0, 1, 2 slides -> 3 role selection
@@ -14,20 +17,20 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     {
       title: "Bienvenido a WAQI",
       desc: "El ecosistema agrícola inteligente que conecta el campo con el futuro.",
-      icon: <Leaf className="text-white h-12 w-12" />,
-      color: "from-green-500 to-lime-400"
+      icon: <Leaf color="#ffffff" size={48} />,
+      colors: ['#22c55e', '#a3e635'],
     },
     {
       title: "Tu AgroScore",
       desc: "Construye tu reputación digital y accede a mejores créditos y oportunidades.",
-      icon: <CheckCircle className="text-white h-12 w-12" />,
-      color: "from-emerald-500 to-teal-400"
+      icon: <CheckCircle color="#ffffff" size={48} />,
+      colors: ['#10b981', '#14b8a6'],
     },
     {
       title: "Conecta y Crece",
       desc: "Compra, vende o invierte con seguridad y datos en tiempo real.",
-      icon: <TrendingUp className="text-white h-12 w-12" />,
-      color: "from-blue-600 to-cyan-500"
+      icon: <TrendingUp color="#ffffff" size={48} />,
+      colors: ['#2563eb', '#06b6d4'],
     }
   ];
 
@@ -37,94 +40,257 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       id: 'agricultor' as UserRole,
       title: 'Soy Agricultor',
       desc: 'Gestiona cultivos, monitorea clima y mejora tu AgroScore.',
-      icon: Sprout,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
-      border: 'hover:border-green-300'
+      IconComponent: Sprout,
+      color: '#16a34a',
+      bgColor: '#f0fdf4',
     },
     {
       id: 'comprador' as UserRole,
       title: 'Soy Comprador',
       desc: 'Encuentra productos verificados y contacta productores.',
-      icon: ShoppingBag,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
-      border: 'hover:border-emerald-300'
+      IconComponent: ShoppingBag,
+      color: '#059669',
+      bgColor: '#ecfdf5',
     },
     {
       id: 'inversionista' as UserRole,
       title: 'Soy Inversionista',
       desc: 'Analiza riesgos, ROI y financia proyectos agrícolas.',
-      icon: TrendingUp,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-      border: 'hover:border-blue-300'
+      IconComponent: TrendingUp,
+      color: '#2563eb',
+      bgColor: '#eff6ff',
     }
   ];
 
   if (step < 3) {
     const slide = slides[step];
     return (
-      <div className="h-full flex flex-col items-center justify-between p-8 bg-white">
-        <div className="w-full flex justify-end">
-           <button onClick={() => setStep(3)} className="text-gray-400 text-sm font-medium">Saltar</button>
-        </div>
+      <View style={styles.slideContainer}>
+        <View style={styles.skipContainer}>
+          <TouchableOpacity onPress={() => setStep(3)}>
+            <Text style={styles.skipText}>Saltar</Text>
+          </TouchableOpacity>
+        </View>
         
-        <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500 key={step}">
-          <div className={`h-32 w-32 bg-gradient-to-tr ${slide.color} rounded-[2rem] flex items-center justify-center shadow-xl mb-10 transform rotate-3 transition-all duration-500`}>
+        <View style={styles.slideContent}>
+          <View style={[styles.iconContainer, { backgroundColor: slide.colors[0] }]}>
             {slide.icon}
-          </div>
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-4">{slide.title}</h2>
-          <p className="text-gray-500 leading-relaxed max-w-xs">{slide.desc}</p>
-        </div>
+          </View>
+          <Text style={styles.slideTitle}>{slide.title}</Text>
+          <Text style={styles.slideDesc}>{slide.desc}</Text>
+        </View>
 
-        <div className="w-full">
-          <div className="flex justify-center gap-2 mb-8">
+        <View style={styles.bottomSection}>
+          <View style={styles.dotsContainer}>
             {slides.map((_, i) => (
-              <div key={i} className={`h-2 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-gray-900' : 'w-2 bg-gray-300'}`}></div>
+              <View 
+                key={i} 
+                style={[
+                  styles.dot, 
+                  i === step ? styles.dotActive : styles.dotInactive
+                ]} 
+              />
             ))}
-          </div>
-          <button 
-            onClick={() => setStep(s => s + 1)}
-            className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-black transition-colors"
+          </View>
+          <TouchableOpacity 
+            onPress={() => setStep(s => s + 1)}
+            style={styles.nextButton}
           >
-            {step === 2 ? 'Comenzar' : 'Siguiente'}
-          </button>
-        </div>
-      </div>
+            <Text style={styles.nextButtonText}>
+              {step === 2 ? 'Comenzar' : 'Siguiente'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   }
 
   // ROLE SELECTION SCREEN
   return (
-    <div className="h-full flex flex-col p-8 bg-gray-50 overflow-y-auto">
-      <div className="mb-8 pt-4">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Elige tu perfil</h1>
-        <p className="text-gray-500">Personalizaremos tu experiencia según tu rol en el ecosistema.</p>
-      </div>
+    <ScrollView style={styles.roleContainer} contentContainerStyle={styles.roleContentContainer}>
+      <View style={styles.roleHeader}>
+        <Text style={styles.roleTitle}>Elige tu perfil</Text>
+        <Text style={styles.roleSubtitle}>Personalizaremos tu experiencia según tu rol en el ecosistema.</Text>
+      </View>
 
-      <div className="space-y-4 pb-8">
+      <View style={styles.rolesWrapper}>
         {roles.map((role) => (
-          <button
+          <TouchableOpacity
             key={role.id}
-            onClick={() => onComplete(role.id)}
-            className={`group relative w-full bg-white p-6 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 text-left border border-gray-100 ${role.border}`}
+            onPress={() => onComplete(role.id)}
+            style={styles.roleCard}
+            activeOpacity={0.7}
           >
-            <div className={`p-4 rounded-2xl w-fit mb-4 ${role.bg} ${role.color}`}>
-              <role.icon size={28} />
-            </div>
-            <div className="flex justify-between items-end">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{role.title}</h3>
-                <p className="text-sm text-gray-500 leading-snug max-w-[90%]">{role.desc}</p>
-              </div>
-              <div className={`h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors`}>
-                 <ArrowRight size={16}/>
-              </div>
-            </div>
-          </button>
+            <View style={[styles.roleIconContainer, { backgroundColor: role.bgColor }]}>
+              <role.IconComponent size={28} color={role.color} />
+            </View>
+            <View style={styles.roleTextContainer}>
+              <View style={styles.roleMainContent}>
+                <Text style={styles.roleCardTitle}>{role.title}</Text>
+                <Text style={styles.roleCardDesc}>{role.desc}</Text>
+              </View>
+              <View style={styles.roleArrowContainer}>
+                <ArrowRight size={16} color="#9ca3af" />
+              </View>
+            </View>
+          </TouchableOpacity>
         ))}
-      </div>
-    </div>
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  slideContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    padding: 32,
+    justifyContent: 'space-between',
+  },
+  skipContainer: {
+    width: '100%',
+    alignItems: 'flex-end',
+  },
+  skipText: {
+    color: '#9ca3af',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  slideContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 128,
+    height: 128,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 40,
+    transform: [{ rotate: '3deg' }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  slideTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  slideDesc: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 280,
+  },
+  bottomSection: {
+    width: '100%',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 32,
+  },
+  dot: {
+    height: 8,
+    borderRadius: 4,
+  },
+  dotActive: {
+    width: 32,
+    backgroundColor: '#111827',
+  },
+  dotInactive: {
+    width: 8,
+    backgroundColor: '#d1d5db',
+  },
+  nextButton: {
+    backgroundColor: '#111827',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  nextButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  roleContainer: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  roleContentContainer: {
+    padding: 32,
+    paddingBottom: 48,
+  },
+  roleHeader: {
+    marginBottom: 32,
+    paddingTop: 16,
+  },
+  roleTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  roleSubtitle: {
+    color: '#6b7280',
+    fontSize: 15,
+  },
+  rolesWrapper: {
+    gap: 16,
+  },
+  roleCard: {
+    backgroundColor: '#ffffff',
+    padding: 24,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    marginBottom: 16,
+  },
+  roleIconContainer: {
+    padding: 16,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  roleTextContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  roleMainContent: {
+    flex: 1,
+    marginRight: 12,
+  },
+  roleCardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  roleCardDesc: {
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 20,
+  },
+  roleArrowContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
