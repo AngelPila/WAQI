@@ -24,7 +24,7 @@ const CROPS_DATA: Crop[] = [
 ];
 
 const INVESTMENT_REQUESTS_DATA: InvestmentRequest[] = [
-  { id: 1, title: 'Expansión Cultivo Maíz', description: 'Necesito inversión para expandir 10 hectáreas adicionales de maíz híbrido', amountNeeded: '$15,000', cropType: 'Maíz', area: '10 ha', estimatedROI: '15-18%', status: 'activa', createdAt: 'Hace 2 días' },
+  { id: 1732820291000, title: 'Expansión Cultivo Maíz', description: 'Necesito inversión para expandir 10 hectáreas adicionales de maíz híbrido', amountNeeded: '$15,000', cropType: 'Maíz', area: '10 ha', estimatedROI: '15-18%', status: 'activa', createdAt: 'Hace 2 días' },
 ];
 
 export const AgricultorView: React.FC = () => {
@@ -227,16 +227,19 @@ export const AgricultorView: React.FC = () => {
   );
 
   const handleSaveInvestmentRequest = () => {
-    if (!newInvestmentTitle || !newInvestmentAmount) return;
+    if (!newInvestmentTitle.trim() || !newInvestmentAmount.trim()) {
+      // Form validation - user will see required fields are marked with *
+      return;
+    }
     
     const newRequest: InvestmentRequest = {
-      id: investmentRequests.length + 1,
-      title: newInvestmentTitle,
-      description: newInvestmentDescription,
+      id: Date.now(),
+      title: newInvestmentTitle.trim(),
+      description: newInvestmentDescription.trim(),
       amountNeeded: newInvestmentAmount.startsWith('$') ? newInvestmentAmount : `$${newInvestmentAmount}`,
-      cropType: newInvestmentCropType,
-      area: newInvestmentArea ? `${newInvestmentArea} ha` : '',
-      estimatedROI: newInvestmentROI ? `${newInvestmentROI}%` : '',
+      cropType: newInvestmentCropType.trim(),
+      area: newInvestmentArea.trim() ? `${newInvestmentArea.trim()} ha` : '',
+      estimatedROI: newInvestmentROI.trim() ? `${newInvestmentROI.trim()}%` : '',
       status: 'activa',
       createdAt: 'Ahora',
     };
