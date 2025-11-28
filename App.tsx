@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
-import { User, Sparkles, Home, Users } from 'lucide-react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import { User, Sparkles, Home, Users } from 'lucide-react-native';
 import { UserRole } from './types';
 import { Onboarding } from './components/Onboarding';
 import { AgricultorView } from './components/views/AgricultorView';
@@ -20,19 +20,18 @@ const App: React.FC = () => {
   // If no role selected, show Onboarding
   if (!role) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-200 p-0 sm:p-4 font-sans">
-        <div className="relative w-full max-w-md h-full sm:h-[850px] bg-white shadow-2xl overflow-hidden sm:rounded-[3rem] sm:border-[8px] sm:border-gray-900">
-          <Onboarding onComplete={setRole} />
-        </div>
-      </div>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <Onboarding onComplete={setRole} />
+      </SafeAreaView>
     );
   }
 
   // Navigation Config per Role
   const navConfig = {
-    agricultor: { bg: 'bg-white', active: 'text-lime-600', inactive: 'text-gray-400' },
-    comprador: { bg: 'bg-white', active: 'text-emerald-600', inactive: 'text-gray-400' },
-    inversionista: { bg: 'bg-slate-900 border-t border-slate-800', active: 'text-cyan-400', inactive: 'text-slate-500' },
+    agricultor: { bg: '#ffffff', active: '#65a30d', inactive: '#9ca3af', borderColor: '#f3f4f6' },
+    comprador: { bg: '#ffffff', active: '#059669', inactive: '#9ca3af', borderColor: '#f3f4f6' },
+    inversionista: { bg: '#0f172a', active: '#22d3ee', inactive: '#64748b', borderColor: '#1e293b' },
   }[role];
 
   const handleTabChange = (tab: Tab) => {
@@ -43,12 +42,13 @@ const App: React.FC = () => {
     if (activeTab === 'profile') return <ProfileView role={role} onLogout={() => setRole(null)} />;
     
     if (activeTab === 'community') {
-      const bgClass = role === 'inversionista' ? 'bg-slate-900 min-h-full text-white' : 'bg-gray-50 min-h-full text-gray-900';
+      const bgColor = role === 'inversionista' ? '#0f172a' : '#f9fafb';
+      const textColor = role === 'inversionista' ? '#ffffff' : '#111827';
       return (
-        <div className={`pt-12 px-6 ${bgClass} pb-24`}>
-          <h2 className="text-2xl font-bold mb-6">Comunidad WAQI</h2>
+        <ScrollView style={[styles.communityContainer, { backgroundColor: bgColor }]}>
+          <Text style={[styles.communityTitle, { color: textColor }]}>Comunidad WAQI</Text>
           <CommunityFeed userRole={role} />
-        </div>
+        </ScrollView>
       );
     }
 
@@ -60,58 +60,120 @@ const App: React.FC = () => {
     return null;
   };
 
+  const getChatButtonStyle = () => {
+    if (role === 'inversionista') return { backgroundColor: '#164e63', borderColor: '#0f172a' };
+    if (role === 'comprador') return { backgroundColor: '#059669', borderColor: '#ffffff' };
+    return { backgroundColor: '#84cc16', borderColor: '#ffffff' };
+  };
+
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gray-200 p-0 sm:p-4 font-sans">
-      <div className="relative w-full max-w-md h-full sm:h-[850px] bg-white shadow-2xl overflow-hidden sm:rounded-[3rem] sm:border-[8px] sm:border-gray-900 flex flex-col">
-        
+    <SafeAreaView style={[styles.container, { backgroundColor: role === 'inversionista' ? '#0f172a' : '#e5e7eb' }]}>
+      <StatusBar 
+        barStyle={role === 'inversionista' ? 'light-content' : 'dark-content'} 
+        backgroundColor={role === 'inversionista' ? '#0f172a' : '#fff'} 
+      />
+      <View style={styles.mainWrapper}>
         {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto no-scrollbar relative">
-           {renderContent()}
-        </div>
+        <View style={styles.contentArea}>
+          {renderContent()}
+        </View>
 
         {/* Floating Chat Modal */}
         <AIChat role={role} isOpen={showChat} setIsOpen={setShowChat} />
 
         {/* Bottom Navigation */}
-        <nav className={`px-6 py-4 flex justify-between items-center z-30 ${navConfig.bg}`}>
-           <button 
-             onClick={() => handleTabChange('home')}
-             className={`flex flex-col items-center gap-1 w-16 ${activeTab === 'home' ? navConfig.active : navConfig.inactive}`}
-           >
-             <Home size={24} />
-             <span className="text-[10px] font-medium">Inicio</span>
-           </button>
+        <View style={[styles.navbar, { backgroundColor: navConfig.bg, borderTopColor: navConfig.borderColor }]}>
+          <TouchableOpacity 
+            onPress={() => handleTabChange('home')}
+            style={styles.navItem}
+          >
+            <Home size={24} color={activeTab === 'home' ? navConfig.active : navConfig.inactive} />
+            <Text style={[styles.navLabel, { color: activeTab === 'home' ? navConfig.active : navConfig.inactive }]}>Inicio</Text>
+          </TouchableOpacity>
 
-           <button 
-             onClick={() => handleTabChange('community')}
-             className={`flex flex-col items-center gap-1 w-16 ${activeTab === 'community' ? navConfig.active : navConfig.inactive}`}
-           >
-             <Users size={24} />
-             <span className="text-[10px] font-medium">Comunidad</span>
-           </button>
+          <TouchableOpacity 
+            onPress={() => handleTabChange('community')}
+            style={styles.navItem}
+          >
+            <Users size={24} color={activeTab === 'community' ? navConfig.active : navConfig.inactive} />
+            <Text style={[styles.navLabel, { color: activeTab === 'community' ? navConfig.active : navConfig.inactive }]}>Comunidad</Text>
+          </TouchableOpacity>
 
-           <button 
-             onClick={() => setShowChat(true)}
-             className={`flex flex-col items-center gap-1 w-16 ${navConfig.inactive}`}
-           >
-             <div className={`p-3 rounded-full -mt-8 border-4 shadow-lg transform active:scale-95 transition-transform ${role === 'inversionista' ? 'bg-cyan-900 text-cyan-400 border-slate-900' : role === 'comprador' ? 'bg-emerald-600 text-white border-white' : 'bg-lime-500 text-white border-white'}`}>
-                <Sparkles size={24} />
-             </div>
-             <span className="text-[10px] font-medium mt-1">IA</span>
-           </button>
+          <TouchableOpacity 
+            onPress={() => setShowChat(true)}
+            style={styles.navItem}
+          >
+            <View style={[styles.chatButton, getChatButtonStyle()]}>
+              <Sparkles size={24} color="#ffffff" />
+            </View>
+            <Text style={[styles.navLabel, { color: navConfig.inactive, marginTop: 8 }]}>IA</Text>
+          </TouchableOpacity>
 
-           <button 
-             onClick={() => handleTabChange('profile')}
-             className={`flex flex-col items-center gap-1 w-16 ${activeTab === 'profile' ? navConfig.active : navConfig.inactive}`}
-           >
-             <User size={24} />
-             <span className="text-[10px] font-medium">Perfil</span>
-           </button>
-        </nav>
-
-      </div>
-    </div>
+          <TouchableOpacity 
+            onPress={() => handleTabChange('profile')}
+            style={styles.navItem}
+          >
+            <User size={24} color={activeTab === 'profile' ? navConfig.active : navConfig.inactive} />
+            <Text style={[styles.navLabel, { color: activeTab === 'profile' ? navConfig.active : navConfig.inactive }]}>Perfil</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  mainWrapper: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  contentArea: {
+    flex: 1,
+  },
+  communityContainer: {
+    flex: 1,
+    paddingTop: 48,
+    paddingHorizontal: 24,
+  },
+  communityTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+  },
+  navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+  },
+  navItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 64,
+  },
+  navLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  chatButton: {
+    padding: 12,
+    borderRadius: 50,
+    marginTop: -32,
+    borderWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});
 
 export default App;

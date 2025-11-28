@@ -1,5 +1,7 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
+import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 interface AgroScoreGaugeProps {
   score: number; // 0 to 1000
@@ -32,37 +34,34 @@ export const AgroScoreGauge: React.FC<AgroScoreGaugeProps> = ({
   };
   const color = getColor(score);
 
-  const Container = variant === 'card' ? 'div' : 'div';
-  const containerClasses = variant === 'card' 
-    ? "bg-white rounded-3xl p-6 shadow-xl border border-gray-100 flex flex-col items-center justify-center relative overflow-hidden cursor-pointer active:scale-95 transition-transform mx-auto"
-    : "flex flex-col items-center justify-center relative";
+  const getScoreLabel = () => {
+    if (score >= 800) return 'Excelente';
+    if (score >= 600) return 'Bueno';
+    return 'Riesgo';
+  };
 
-  return (
-    <Container 
-      onClick={onClick}
-      className={containerClasses}
-      style={{ width: '100%', maxWidth: '350px' }}
-    >
+  const GaugeContent = () => (
+    <>
       {/* Header */}
       {variant === 'card' && (
-        <div className="w-full flex justify-between items-start mb-2 z-10">
-          <h3 className="text-xl font-bold text-gray-900">Mis finanzas</h3>
-        </div>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mis finanzas</Text>
+        </View>
       )}
 
       {/* Gauge Container */}
-      <div className="relative flex items-center justify-center mt-4" style={{ height: size / 1.8, width: size }}>
-        <svg width={size} height={size} viewBox="0 0 200 200" className="transform rotate-180 origin-center">
-          <defs>
-            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ef4444" />
-              <stop offset="50%" stopColor="#eab308" />
-              <stop offset="100%" stopColor="#22c55e" />
-            </linearGradient>
-          </defs>
+      <View style={[styles.gaugeContainer, { height: size / 1.8, width: size }]}>
+        <Svg width={size} height={size} viewBox="0 0 200 200" style={styles.gaugeSvg}>
+          <Defs>
+            <LinearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor="#ef4444" />
+              <Stop offset="50%" stopColor="#eab308" />
+              <Stop offset="100%" stopColor="#22c55e" />
+            </LinearGradient>
+          </Defs>
           
           {/* Track */}
-          <path
+          <Path
             d="M 10,100 A 90,90 0 0,1 190,100"
             fill="none"
             stroke="#f3f4f6"
@@ -71,7 +70,7 @@ export const AgroScoreGauge: React.FC<AgroScoreGaugeProps> = ({
           />
           
           {/* Progress */}
-          <path
+          <Path
             d="M 10,100 A 90,90 0 0,1 190,100"
             fill="none"
             stroke="url(#scoreGradient)"
@@ -79,33 +78,164 @@ export const AgroScoreGauge: React.FC<AgroScoreGaugeProps> = ({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
-            className="transition-all duration-1000 ease-out"
           />
-        </svg>
+        </Svg>
 
         {/* Center Text */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-8 text-center z-10">
-          <span className="text-6xl font-extrabold text-gray-800 tracking-tighter block leading-none">{score}</span>
-          <span className="text-lg font-bold mt-1 block" style={{ color }}>
-            {score >= 800 ? 'Excelente' : score >= 600 ? 'Bueno' : 'Riesgo'}
-          </span>
-        </div>
-      </div>
+        <View style={styles.centerText}>
+          <Text style={styles.scoreValue}>{score}</Text>
+          <Text style={[styles.scoreLabel, { color }]}>{getScoreLabel()}</Text>
+        </View>
+      </View>
 
-      <div className="text-center z-10 -mt-6">
-        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Score crediticio</p>
-        <button className="text-xs text-blue-500 mt-2 font-medium flex items-center gap-1 mx-auto hover:underline">
-          ¿Qué significa este número? <ChevronRight size={12} />
-        </button>
-      </div>
+      <View style={styles.footer}>
+        <Text style={styles.footerLabel}>Score crediticio</Text>
+        <TouchableOpacity style={styles.helpButton}>
+          <Text style={styles.helpText}>¿Qué significa este número?</Text>
+          <ChevronRight size={12} color="#3b82f6" />
+        </TouchableOpacity>
+      </View>
 
       {/* Footer Info */}
       {variant === 'card' && (
-        <div className="w-full border-t border-gray-100 mt-6 pt-4 flex justify-between items-center text-xs text-gray-400 z-10">
-          <span className="font-extrabold text-red-700 tracking-tighter text-sm">WAQI<span className="text-gray-400 font-normal">Score</span></span>
-          <span>Actualizado: 25/06/2024</span>
-        </div>
+        <View style={styles.cardFooter}>
+          <Text style={styles.brandText}>
+            <Text style={styles.brandRed}>WAQI</Text>
+            <Text style={styles.brandGray}>Score</Text>
+          </Text>
+          <Text style={styles.updateText}>Actualizado: 25/06/2024</Text>
+        </View>
       )}
-    </Container>
+    </>
+  );
+
+  if (variant === 'card') {
+    return (
+      <TouchableOpacity 
+        onPress={onClick}
+        style={styles.cardContainer}
+        activeOpacity={0.95}
+      >
+        <GaugeContent />
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={styles.fullContainer}>
+      <GaugeContent />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 350,
+    alignSelf: 'center',
+  },
+  fullContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  header: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  gaugeContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+  },
+  gaugeSvg: {
+    transform: [{ rotate: '180deg' }],
+  },
+  centerText: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
+  scoreValue: {
+    fontSize: 56,
+    fontWeight: '800',
+    color: '#1f2937',
+    letterSpacing: -2,
+  },
+  scoreLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: -24,
+  },
+  footerLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  helpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 4,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
+  cardFooter: {
+    width: '100%',
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    marginTop: 24,
+    paddingTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  brandText: {
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  brandRed: {
+    color: '#b91c1c',
+  },
+  brandGray: {
+    color: '#9ca3af',
+    fontWeight: 'normal',
+  },
+  updateText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+});

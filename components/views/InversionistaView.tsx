@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Activity, Sparkles, TrendingUp, ArrowUpRight, PieChart, ArrowLeft, Info, Wallet, ChevronRight } from 'lucide-react';
-import { AreaChart, Area, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Activity, Sparkles, TrendingUp, ArrowUpRight, PieChart, ArrowLeft, Info, Wallet } from 'lucide-react-native';
+import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Project } from '../../types';
 import { AgroScoreGauge } from '../ui/AgroScoreGauge';
 
@@ -18,6 +19,39 @@ const INVEST_PROJECTS: Project[] = [
 
 type ViewState = 'dashboard' | 'project-detail';
 
+// Simple chart component for React Native
+const SimpleAreaChart: React.FC<{ data: typeof INVEST_DATA }> = ({ data }) => {
+  const maxPrice = Math.max(...data.map(d => d.price));
+  const minPrice = Math.min(...data.map(d => d.price));
+  const range = maxPrice - minPrice;
+  
+  const width = 300;
+  const height = 150;
+  const padding = 20;
+  
+  const points = data.map((d, i) => {
+    const x = padding + (i / (data.length - 1)) * (width - 2 * padding);
+    const y = height - padding - ((d.price - minPrice) / range) * (height - 2 * padding);
+    return `${x},${y}`;
+  }).join(' ');
+  
+  const areaPath = `M ${padding},${height - padding} L ${points} L ${width - padding},${height - padding} Z`;
+  const linePath = `M ${points}`;
+  
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Defs>
+        <LinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <Stop offset="0%" stopColor="#0891b2" stopOpacity={0.3} />
+          <Stop offset="100%" stopColor="#0891b2" stopOpacity={0} />
+        </LinearGradient>
+      </Defs>
+      <Path d={areaPath} fill="url(#areaGradient)" />
+      <Path d={linePath} fill="none" stroke="#06b6d4" strokeWidth={2} />
+    </Svg>
+  );
+};
+
 export const InversionistaView: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -31,181 +65,654 @@ export const InversionistaView: React.FC = () => {
   const ProjectDetail = () => {
     if (!selectedProject) return null;
     return (
-      <div className="bg-slate-900 min-h-screen text-white pb-24 animate-in slide-in-from-right">
-        <header className="px-6 pt-12 pb-6 flex items-center gap-4">
-          <button onClick={() => setView('dashboard')} className="p-2 bg-slate-800 rounded-full hover:bg-slate-700">
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-xl font-bold">Detalle de Proyecto</h1>
-        </header>
+      <ScrollView style={styles.detailContainer} contentContainerStyle={styles.detailContentContainer}>
+        <View style={styles.detailHeader}>
+          <TouchableOpacity onPress={() => setView('dashboard')} style={styles.backButton}>
+            <ArrowLeft size={20} color="#ffffff" />
+          </TouchableOpacity>
+          <Text style={styles.detailTitle}>Detalle de Proyecto</Text>
+        </View>
 
-        <div className="px-6 space-y-6">
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-             <div className="flex justify-between mb-4">
-                <div>
-                   <h2 className="text-2xl font-bold">{selectedProject.title}</h2>
-                   <p className="text-slate-400 text-sm">{selectedProject.farmerName}</p>
-                </div>
-                <div className="text-right">
-                   <div className="text-3xl font-bold text-cyan-400">{selectedProject.roi}</div>
-                   <div className="text-xs text-slate-500 uppercase">ROI Estimado</div>
-                </div>
-             </div>
-             
-             <div className="h-2 bg-slate-900 rounded-full overflow-hidden mb-2">
-                <div className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400" style={{ width: `${selectedProject.funded}%` }}></div>
-             </div>
-             <div className="flex justify-between text-xs text-slate-400">
-                <span>Financiado: {selectedProject.funded}%</span>
-                <span>Meta: {selectedProject.amount}</span>
-             </div>
-          </div>
+        <View style={styles.projectInfoCard}>
+          <View style={styles.projectInfoHeader}>
+            <View>
+              <Text style={styles.projectTitle}>{selectedProject.title}</Text>
+              <Text style={styles.projectFarmer}>{selectedProject.farmerName}</Text>
+            </View>
+            <View style={styles.roiBox}>
+              <Text style={styles.roiValue}>{selectedProject.roi}</Text>
+              <Text style={styles.roiLabel}>ROI Estimado</Text>
+            </View>
+          </View>
+          
+          <View style={styles.fundingBar}>
+            <View style={[styles.fundingProgress, { width: `${selectedProject.funded}%` }]} />
+          </View>
+          <View style={styles.fundingLabels}>
+            <Text style={styles.fundingText}>Financiado: {selectedProject.funded}%</Text>
+            <Text style={styles.fundingText}>Meta: {selectedProject.amount}</Text>
+          </View>
+        </View>
 
-          <div className="grid grid-cols-2 gap-4">
-             <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                <span className="text-slate-500 text-xs block mb-1">Risk Score</span>
-                <span className={`text-xl font-bold ${selectedProject.score > 900 ? 'text-green-400' : 'text-yellow-400'}`}>{selectedProject.score}</span>
-             </div>
-             <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                <span className="text-slate-500 text-xs block mb-1">Nivel Riesgo</span>
-                <span className="text-xl font-bold text-white">{selectedProject.risk}</span>
-             </div>
-          </div>
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Risk Score</Text>
+            <Text style={[styles.statValue, { color: selectedProject.score > 900 ? '#4ade80' : '#facc15' }]}>
+              {selectedProject.score}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Nivel Riesgo</Text>
+            <Text style={styles.statValue}>{selectedProject.risk}</Text>
+          </View>
+        </View>
 
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-             <h3 className="font-bold mb-4 flex items-center gap-2"><Wallet size={18}/> Simulador de Inversión</h3>
-             
-             <div className="mb-6">
-                <label className="text-xs text-slate-400 mb-2 block">Monto a Invertir: ${investAmount}</label>
-                <input 
-                  type="range" 
-                  min="500" 
-                  max="10000" 
-                  step="500"
-                  value={investAmount} 
-                  onChange={(e) => setInvestAmount(parseInt(e.target.value))}
-                  className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-                />
-             </div>
+        <View style={styles.simulatorCard}>
+          <View style={styles.simulatorHeader}>
+            <Wallet size={18} color="#ffffff" />
+            <Text style={styles.simulatorTitle}>Simulador de Inversión</Text>
+          </View>
+          
+          <View style={styles.sliderSection}>
+            <Text style={styles.sliderLabel}>Monto a Invertir: ${investAmount}</Text>
+            <View style={styles.amountButtons}>
+              <TouchableOpacity 
+                style={styles.amountButton}
+                onPress={() => setInvestAmount(Math.max(500, investAmount - 500))}
+              >
+                <Text style={styles.amountButtonText}>-</Text>
+              </TouchableOpacity>
+              <View style={styles.amountDisplay}>
+                <Text style={styles.amountDisplayText}>${investAmount}</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.amountButton}
+                onPress={() => setInvestAmount(Math.min(10000, investAmount + 500))}
+              >
+                <Text style={styles.amountButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-             <div className="flex justify-between items-center p-4 bg-slate-900 rounded-xl">
-                <span className="text-sm text-slate-400">Retorno Estimado (12m)</span>
-                <span className="text-xl font-bold text-green-400">+${(investAmount * 0.15).toFixed(0)}</span>
-             </div>
+          <View style={styles.returnBox}>
+            <Text style={styles.returnLabel}>Retorno Estimado (12m)</Text>
+            <Text style={styles.returnValue}>+${(investAmount * 0.15).toFixed(0)}</Text>
+          </View>
 
-             <button className="w-full mt-6 bg-cyan-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-900/50 hover:bg-cyan-500 transition-colors">
-                Invertir Ahora
-             </button>
-          </div>
-        </div>
-      </div>
+          <TouchableOpacity style={styles.investButton}>
+            <Text style={styles.investButtonText}>Invertir Ahora</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     );
-  }
+  };
 
   if (view === 'project-detail') return <ProjectDetail />;
 
   return (
-    <div className="min-h-full bg-slate-900 text-white pb-24 relative overflow-hidden">
-       {/* Background Effects */}
-       <div className="absolute top-0 left-0 w-full h-96 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+    <View style={styles.container}>
+      {/* Background Effect */}
+      <View style={styles.bgEffect} />
 
-      <header className="relative z-10 px-6 pt-12 pb-6 flex justify-between items-center border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold tracking-wider">PORTFOLIO</h1>
-          <p className="text-slate-400 text-xs uppercase tracking-widest flex items-center gap-1">Agro Risk Analytics <Sparkles size={10} className="text-cyan-400"/></p>
-        </div>
-        <div className="bg-slate-800 p-2 rounded-lg border border-slate-700 hover:border-cyan-500/50 transition-colors cursor-pointer">
-           <Activity className="text-cyan-400" />
-        </div>
-      </header>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.portfolioTitle}>PORTFOLIO</Text>
+          <View style={styles.subtitleRow}>
+            <Text style={styles.portfolioSubtitle}>Agro Risk Analytics</Text>
+            <Sparkles size={10} color="#22d3ee" />
+          </View>
+        </View>
+        <TouchableOpacity style={styles.activityButton}>
+          <Activity size={20} color="#22d3ee" />
+        </TouchableOpacity>
+      </View>
 
-      <main className="relative z-10 px-6 py-6 space-y-8">
-        
+      <ScrollView style={styles.mainContent} contentContainerStyle={styles.mainContentContainer}>
         {/* Graph Card */}
-        <div className="bg-slate-800/50 border border-slate-700 backdrop-blur-md rounded-3xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <p className="text-slate-400 text-sm">Valor Total Mercado</p>
-              <h2 className="text-3xl font-bold text-white mt-1 flex items-center gap-2">
-                $1.74T <span className="text-sm bg-green-500/20 text-green-400 px-2 py-0.5 rounded flex items-center gap-1"><ArrowUpRight size={12}/> 2.4%</span>
-              </h2>
-            </div>
-          </div>
+        <View style={styles.graphCard}>
+          <View style={styles.graphHeader}>
+            <Text style={styles.graphSubtitle}>Valor Total Mercado</Text>
+            <View style={styles.valueRow}>
+              <Text style={styles.graphValue}>$1.74T</Text>
+              <View style={styles.changeBadge}>
+                <ArrowUpRight size={12} color="#4ade80" />
+                <Text style={styles.changeText}>2.4%</Text>
+              </View>
+            </View>
+          </View>
           
-          <div className="h-48 w-full -ml-4">
-             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={INVEST_DATA}>
-                  <defs>
-                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0891b2" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#0891b2" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <RechartsTooltip cursor={{stroke: '#334155'}} contentStyle={{backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff'}} />
-                  <Area type="monotone" dataKey="price" stroke="#06b6d4" fillOpacity={1} fill="url(#colorPrice)" strokeWidth={2} />
-                </AreaChart>
-             </ResponsiveContainer>
-          </div>
+          <View style={styles.chartContainer}>
+            <SimpleAreaChart data={INVEST_DATA} />
+          </View>
 
-          {/* WAQI AI Questions (CMC Style) */}
-          <div className="mt-4 pt-4 border-t border-slate-700">
-             <h4 className="text-xs font-bold text-slate-400 mb-3 flex items-center gap-1"><Sparkles size={10} /> WAQI AI Insights</h4>
-             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                {['¿Por qué sube el Cacao?', 'Análisis de Riesgo Arrocero', 'Previsión Q4'].map((q, i) => (
-                   <button key={i} className="whitespace-nowrap bg-slate-700/50 hover:bg-cyan-900/30 border border-slate-600 hover:border-cyan-500/50 rounded-full px-3 py-1.5 text-xs text-slate-300 transition-colors">
-                      {q}
-                   </button>
-                ))}
-             </div>
-          </div>
-        </div>
+          {/* WAQI AI Questions */}
+          <View style={styles.aiSection}>
+            <View style={styles.aiHeader}>
+              <Sparkles size={10} color="#64748b" />
+              <Text style={styles.aiTitle}>WAQI AI Insights</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.aiQuestions}>
+              {['¿Por qué sube el Cacao?', 'Análisis de Riesgo Arrocero', 'Previsión Q4'].map((q, i) => (
+                <TouchableOpacity key={i} style={styles.aiQuestionChip}>
+                  <Text style={styles.aiQuestionText}>{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
 
         {/* Global Risk Score */}
-        <div className="bg-slate-800/80 border border-slate-700 rounded-3xl p-6 flex flex-col items-center">
-            <h3 className="text-slate-300 font-medium mb-4 w-full text-left flex items-center justify-between">
-              Riesgo de Cartera <Info size={16} className="text-slate-500"/>
-            </h3>
+        <View style={styles.riskCard}>
+          <View style={styles.riskHeader}>
+            <Text style={styles.riskTitle}>Riesgo de Cartera</Text>
+            <Info size={16} color="#64748b" />
+          </View>
+          <View style={styles.gaugeWrapper}>
             <AgroScoreGauge score={890} maxScore={1000} size={220} variant="full" />
-        </div>
+          </View>
+        </View>
 
         {/* Opportunities List */}
-        <div>
-          <h3 className="text-slate-300 font-medium mb-4 flex items-center gap-2">
-            <TrendingUp size={16} className="text-cyan-400"/> Proyectos Abiertos
-          </h3>
-          <div className="space-y-4">
-            {INVEST_PROJECTS.map(proj => (
-              <div key={proj.id} onClick={() => handleSelectProject(proj)} className="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col gap-3 hover:border-cyan-500/30 transition-colors cursor-pointer group active:scale-[0.98]">
-                <div className="flex justify-between items-start">
-                  <div className="flex gap-3">
-                    <div className="bg-blue-900/50 p-3 rounded-xl text-blue-400 h-fit">
-                      <PieChart size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-white group-hover:text-cyan-400 transition-colors">{proj.title}</h4>
-                      <p className="text-xs text-slate-400 mt-1">ROI Est: <span className="text-green-400">{proj.roi}</span> • Riesgo: <span className="text-yellow-400">{proj.risk}</span></p>
-                    </div>
-                  </div>
-                  <div className={`px-2 py-1 rounded text-xs font-bold ${proj.score >= 900 ? 'text-green-400 bg-green-900/30' : 'text-yellow-400 bg-yellow-900/30'}`}>
+        <View style={styles.projectsSection}>
+          <View style={styles.projectsHeader}>
+            <TrendingUp size={16} color="#22d3ee" />
+            <Text style={styles.projectsTitle}>Proyectos Abiertos</Text>
+          </View>
+          {INVEST_PROJECTS.map(proj => (
+            <TouchableOpacity 
+              key={proj.id} 
+              onPress={() => handleSelectProject(proj)} 
+              style={styles.projectCard}
+              activeOpacity={0.7}
+            >
+              <View style={styles.projectCardHeader}>
+                <View style={styles.projectCardInfo}>
+                  <View style={styles.projectIcon}>
+                    <PieChart size={20} color="#60a5fa" />
+                  </View>
+                  <View>
+                    <Text style={styles.projectCardTitle}>{proj.title}</Text>
+                    <Text style={styles.projectCardMeta}>
+                      ROI Est: <Text style={styles.roiGreen}>{proj.roi}</Text> • Riesgo: <Text style={styles.riskYellow}>{proj.risk}</Text>
+                    </Text>
+                  </View>
+                </View>
+                <View style={[styles.projectScoreBadge, proj.score >= 900 ? styles.scoreGreen : styles.scoreYellow]}>
+                  <Text style={[styles.projectScoreText, proj.score >= 900 ? styles.scoreTextGreen : styles.scoreTextYellow]}>
                     {proj.score}
-                  </div>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="mt-2">
-                  <div className="flex justify-between text-xs text-slate-400 mb-1">
-                    <span>Meta: {proj.amount}</span>
-                    <span>{proj.funded}% Financiado</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]" style={{width: `${proj.funded}%`}}></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-    </div>
+                  </Text>
+                </View>
+              </View>
+              
+              {/* Progress Bar */}
+              <View style={styles.projectProgressSection}>
+                <View style={styles.projectProgressLabels}>
+                  <Text style={styles.projectProgressLabel}>Meta: {proj.amount}</Text>
+                  <Text style={styles.projectProgressLabel}>{proj.funded}% Financiado</Text>
+                </View>
+                <View style={styles.projectProgressTrack}>
+                  <View style={[styles.projectProgressBar, { width: `${proj.funded}%` }]} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  bgEffect: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: 400,
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    borderRadius: 200,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  portfolioTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    letterSpacing: 2,
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  portfolioSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  activityButton: {
+    backgroundColor: '#1e293b',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  mainContent: {
+    flex: 1,
+  },
+  mainContentContainer: {
+    padding: 24,
+    paddingBottom: 100,
+    gap: 32,
+  },
+  graphCard: {
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  graphHeader: {
+    marginBottom: 24,
+  },
+  graphSubtitle: {
+    fontSize: 14,
+    color: '#94a3b8',
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  graphValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  changeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 2,
+  },
+  changeText: {
+    fontSize: 12,
+    color: '#4ade80',
+  },
+  chartContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  aiSection: {
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    paddingTop: 16,
+  },
+  aiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 12,
+  },
+  aiTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#64748b',
+  },
+  aiQuestions: {
+    paddingBottom: 8,
+  },
+  aiQuestionChip: {
+    backgroundColor: 'rgba(71, 85, 105, 0.5)',
+    borderWidth: 1,
+    borderColor: '#475569',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+  },
+  aiQuestionText: {
+    fontSize: 12,
+    color: '#cbd5e1',
+  },
+  riskCard: {
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+    alignItems: 'center',
+  },
+  riskHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 16,
+  },
+  riskTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#cbd5e1',
+  },
+  gaugeWrapper: {
+    alignItems: 'center',
+  },
+  projectsSection: {
+    gap: 16,
+  },
+  projectsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  projectsTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#cbd5e1',
+  },
+  projectCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#334155',
+    gap: 12,
+  },
+  projectCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  projectCardInfo: {
+    flexDirection: 'row',
+    gap: 12,
+    flex: 1,
+  },
+  projectIcon: {
+    backgroundColor: 'rgba(37, 99, 235, 0.3)',
+    padding: 12,
+    borderRadius: 12,
+  },
+  projectCardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  projectCardMeta: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4,
+  },
+  roiGreen: {
+    color: '#4ade80',
+  },
+  riskYellow: {
+    color: '#facc15',
+  },
+  projectScoreBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  scoreGreen: {
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+  },
+  scoreYellow: {
+    backgroundColor: 'rgba(250, 204, 21, 0.2)',
+  },
+  projectScoreText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  scoreTextGreen: {
+    color: '#4ade80',
+  },
+  scoreTextYellow: {
+    color: '#facc15',
+  },
+  projectProgressSection: {
+    marginTop: 8,
+  },
+  projectProgressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  projectProgressLabel: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  projectProgressTrack: {
+    height: 6,
+    backgroundColor: '#334155',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  projectProgressBar: {
+    height: '100%',
+    backgroundColor: '#22d3ee',
+    borderRadius: 3,
+    shadowColor: '#22d3ee',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+  },
+  // Detail styles
+  detailContainer: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  detailContentContainer: {
+    paddingBottom: 100,
+  },
+  detailHeader: {
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  backButton: {
+    padding: 8,
+    backgroundColor: '#1e293b',
+    borderRadius: 20,
+  },
+  detailTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  projectInfoCard: {
+    marginHorizontal: 24,
+    backgroundColor: '#1e293b',
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginBottom: 16,
+  },
+  projectInfoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  projectTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  projectFarmer: {
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 4,
+  },
+  roiBox: {
+    alignItems: 'flex-end',
+  },
+  roiValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#22d3ee',
+  },
+  roiLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    textTransform: 'uppercase',
+  },
+  fundingBar: {
+    height: 8,
+    backgroundColor: '#0f172a',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  fundingProgress: {
+    height: '100%',
+    backgroundColor: '#22d3ee',
+    borderRadius: 4,
+  },
+  fundingLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  fundingText: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginHorizontal: 24,
+    marginBottom: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(51, 65, 85, 0.5)',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  simulatorCard: {
+    marginHorizontal: 24,
+    backgroundColor: '#1e293b',
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  simulatorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  simulatorTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  sliderSection: {
+    marginBottom: 24,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 8,
+  },
+  amountButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  amountButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#334155',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  amountButtonText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#22d3ee',
+  },
+  amountDisplay: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  amountDisplayText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  returnBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  returnLabel: {
+    fontSize: 14,
+    color: '#64748b',
+  },
+  returnValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4ade80',
+  },
+  investButton: {
+    backgroundColor: '#0891b2',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#0891b2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  investButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+});

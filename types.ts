@@ -1,5 +1,3 @@
-import { LucideIcon } from 'lucide-react';
-
 export type UserRole = 'agricultor' | 'comprador' | 'inversionista';
 export type AppScreen = 'onboarding' | 'auth' | 'app';
 
@@ -8,7 +6,6 @@ export interface RoleConfig {
   label: string;
   color: string;
   bgColor: string;
-  icon: LucideIcon;
   description: string;
 }
 
