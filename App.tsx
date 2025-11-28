@@ -1,33 +1,45 @@
 import './global.css';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import { User, Sparkles, Home, Users } from 'lucide-react-native';
-import { UserRole } from './types';
-import { Onboarding } from './components/Onboarding';
-import { AgricultorView } from './components/views/AgricultorView';
-import { CompradorView } from './components/views/CompradorView';
-import { InversionistaView } from './components/views/InversionistaView';
-import { ProfileView } from './components/views/ProfileView';
-import { CommunityFeed } from './components/shared/CommunityFeed';
-import { AIChat } from './components/AIChat';
+import { StyleSheet, View } from 'react-native';
+import { Marketplace, Community, BuyerProfile, IAAssistant, BottomNav } from './components';
 
-type Tab = 'home' | 'community' | 'profile';
+type Tab = 'home' | 'community' | 'ia' | 'profile';
 
 export default function App() {
-  const [role, setRole] = useState<UserRole | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('home');
-  const [showChat, setShowChat] = useState(false);
+  const [iaVisible, setIaVisible] = useState(false);
 
-  // If no role selected, show Onboarding
-  if (!role) {
-    return (
-      <>
-        <Onboarding onComplete={setRole} />
-        <StatusBar style="dark" />
-      </>
-    );
+  function renderContent() {
+    switch (activeTab) {
+      case 'home': return <Marketplace />;
+      case 'community': return <Community />;
+      case 'profile': return <BuyerProfile />;
+      default: return <Marketplace />;
+    }
   }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.content}>
+        {renderContent()}
+      </View>
+      
+      <BottomNav 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        onIAOpen={() => setIaVisible(true)}
+      />
+
+      <IAAssistant 
+        visible={iaVisible} 
+        onClose={() => setIaVisible(false)} 
+      />
+      
+      <StatusBar style="auto" />
+    </View>
+  );
+}
 
   // Navigation Config per Role
   const getNavConfig = () => {
@@ -144,3 +156,13 @@ export default function App() {
     </View>
   );
 }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
+    paddingBottom: 80, // Space for BottomNav
+  },
+});

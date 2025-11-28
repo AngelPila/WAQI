@@ -11,6 +11,7 @@ export type Product = {
   qty?: string;
   rating?: number;
   icon?: string; // emoji or uri
+  category?: string;
 };
 
 type Props = {
