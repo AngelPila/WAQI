@@ -2,8 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import { UserRole } from "../types";
 import Constants from 'expo-constants';
 
-// Initialize Gemini Client - Use Expo Constants for API key
-const apiKey = Constants.expirationDate || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+// Initialize Gemini Client - Use Expo Constants or environment variable for API key
+const apiKey = Constants.expoConfig?.extra?.geminiApiKey || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 const ROLE_PROMPTS: Record<UserRole, string> = {

@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   gaugeContainer: {
     position: 'relative',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     marginTop: 16,
   },
   gaugeSvg: {
@@ -173,10 +173,11 @@ const styles = StyleSheet.create({
   },
   centerText: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -32 }],
+    bottom: 0,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    paddingBottom: 8,
   },
   scoreValue: {
     fontSize: 56,
