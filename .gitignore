@@ -22,3 +22,33 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Vite
+.vite/
+
+# Native builds
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.hprof
+*.tsbuildinfo
+
+# iOS
+ios/
+*.ipa
+
+# Android
+android/
+*.apk
+*.aab
+
+# EAS
+.eas/

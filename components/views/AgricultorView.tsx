@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { User, CloudRain, Sun, Wind, Droplets, Plus, Sprout, ChevronRight, ArrowLeft, Calendar, FileText, CheckCircle2, MessageSquare, Edit3 } from 'lucide-react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { User, CloudRain, Sun, Wind, Droplets, Plus, Sprout, ChevronRight, ArrowLeft, Calendar, FileText, CheckCircle2 } from 'lucide-react-native';
 import { AgroScoreGauge } from '../ui/AgroScoreGauge';
-import { CommunityFeed } from '../shared/CommunityFeed';
 import { Crop } from '../../types';
 
 type ViewState = 'dashboard' | 'score-detail' | 'add-crop' | 'notebook';
@@ -17,270 +17,817 @@ export const AgricultorView: React.FC = () => {
   // --- SUB-VIEWS ---
 
   const ScoreDetail = () => (
-    <div className="animate-in slide-in-from-right pb-24 bg-gray-50 min-h-full">
-      <div className="bg-white px-6 pt-12 pb-6 shadow-sm mb-4">
-        <div className="flex items-center gap-4 mb-4">
-          <button onClick={() => setView('dashboard')} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="text-xl font-bold">Detalle AgroScore</h2>
-        </div>
-        
-        <div className="flex justify-center mb-2">
-           <AgroScoreGauge score={979} maxScore={1000} size={240} variant="full" />
-        </div>
-      </div>
+    <ScrollView style={styles.subViewContainer} showsVerticalScrollIndicator={false}>
+      <View style={styles.subViewHeader}>
+        <TouchableOpacity onPress={() => setView('dashboard')} style={styles.backButton}>
+          <ArrowLeft size={20} color="#111827" />
+        </TouchableOpacity>
+        <Text style={styles.subViewTitle}>Detalle AgroScore</Text>
+      </View>
+      
+      <View style={styles.scoreDetailGauge}>
+        <AgroScoreGauge score={979} maxScore={1000} size={240} variant="full" />
+      </View>
 
-      <div className="px-6 space-y-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-          <h3 className="font-bold mb-4 text-gray-900">Breakdown del Puntaje</h3>
-          <div className="space-y-4">
-            {[
-              { label: 'Historial Productivo', val: 'Excelente', score: 98, color: 'bg-green-500' },
-              { label: 'Salud Financiera', val: 'Bueno', score: 85, color: 'bg-lime-500' },
-              { label: 'Riesgo de Zona', val: 'Bajo', score: 92, color: 'bg-emerald-500' },
-              { label: 'Validación de Tierras', val: 'Verificado', score: 100, color: 'bg-green-600' }
-            ].map((item, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-gray-600">{item.label}</span>
-                  <span className="font-bold text-gray-900">{item.score}/100</span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${item.color}`} style={{ width: item.score + '%' }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <View style={styles.scoreBreakdown}>
+        <Text style={styles.breakdownTitle}>Breakdown del Puntaje</Text>
+        {[
+          { label: 'Historial Productivo', val: 'Excelente', score: 98, color: '#22c55e' },
+          { label: 'Salud Financiera', val: 'Bueno', score: 85, color: '#84cc16' },
+          { label: 'Riesgo de Zona', val: 'Bajo', score: 92, color: '#10b981' },
+          { label: 'Validación de Tierras', val: 'Verificado', score: 100, color: '#16a34a' }
+        ].map((item, i) => (
+          <View key={i} style={styles.breakdownItem}>
+            <View style={styles.breakdownLabelRow}>
+              <Text style={styles.breakdownLabel}>{item.label}</Text>
+              <Text style={styles.breakdownScore}>{item.score}/100</Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressBar, { width: `${item.score}%`, backgroundColor: item.color }]} />
+            </View>
+          </View>
+        ))}
+      </View>
 
-        <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
-          <h3 className="font-bold text-blue-900 text-sm mb-3 flex items-center gap-2">
-            <CheckCircle2 size={18} /> Tips para mejorar
-          </h3>
-          <ul className="space-y-2">
-             <li className="flex gap-2 text-sm text-blue-800">
-                <span className="text-blue-500">•</span> Registra tus facturas de insumos pendientes.
-             </li>
-             <li className="flex gap-2 text-sm text-blue-800">
-                <span className="text-blue-500">•</span> Actualiza el estado de tu cultivo de Soya.
-             </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+      <View style={styles.tipsCard}>
+        <View style={styles.tipsHeader}>
+          <CheckCircle2 size={18} color="#1e40af" />
+          <Text style={styles.tipsTitle}>Tips para mejorar</Text>
+        </View>
+        <View style={styles.tipsList}>
+          <View style={styles.tipItem}>
+            <Text style={styles.tipBullet}>•</Text>
+            <Text style={styles.tipText}>Registra tus facturas de insumos pendientes.</Text>
+          </View>
+          <View style={styles.tipItem}>
+            <Text style={styles.tipBullet}>•</Text>
+            <Text style={styles.tipText}>Actualiza el estado de tu cultivo de Soya.</Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 
   const AddCropForm = () => (
-    <div className="animate-in slide-in-from-right pb-24 bg-white min-h-full">
-      <div className="px-6 pt-12 pb-6 border-b border-gray-100 mb-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => setView('dashboard')} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="text-xl font-bold">Registrar Cultivo</h2>
-        </div>
-      </div>
+    <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
+      <View style={styles.formHeader}>
+        <TouchableOpacity onPress={() => setView('dashboard')} style={styles.backButton}>
+          <ArrowLeft size={20} color="#111827" />
+        </TouchableOpacity>
+        <Text style={styles.subViewTitle}>Registrar Cultivo</Text>
+      </View>
 
-      <form className="px-6 space-y-5" onSubmit={(e) => { e.preventDefault(); setView('dashboard'); }}>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">Tipo de Cultivo</label>
-          <select className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-lime-500 focus:outline-none text-gray-700 appearance-none">
-            <option>Seleccionar cultivo...</option>
-            <option>Maíz</option>
-            <option>Arroz</option>
-            <option>Cacao</option>
-            <option>Soya</option>
-          </select>
-        </div>
+      <View style={styles.formContent}>
+        <View style={styles.formGroup}>
+          <Text style={styles.formLabel}>Tipo de Cultivo</Text>
+          <View style={styles.selectContainer}>
+            <Text style={styles.selectText}>Seleccionar cultivo...</Text>
+          </View>
+        </View>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Área (Has)</label>
-            <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-lime-500 outline-none" placeholder="0" />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Estimado</label>
-            <input type="number" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-lime-500 outline-none" placeholder="qq" />
-          </div>
-        </div>
+        <View style={styles.formRow}>
+          <View style={[styles.formGroup, styles.halfWidth]}>
+            <Text style={styles.formLabel}>Área (Has)</Text>
+            <TextInput 
+              style={styles.formInput}
+              placeholder="0"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={[styles.formGroup, styles.halfWidth]}>
+            <Text style={styles.formLabel}>Estimado</Text>
+            <TextInput 
+              style={styles.formInput}
+              placeholder="qq"
+              placeholderTextColor="#9ca3af"
+              keyboardType="numeric"
+            />
+          </View>
+        </View>
 
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">Fecha de Siembra</label>
-          <div className="relative">
-            <Calendar className="absolute left-4 top-4 text-gray-400" size={20} />
-            <input type="date" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-lime-500 outline-none" />
-          </div>
-        </div>
+        <View style={styles.formGroup}>
+          <Text style={styles.formLabel}>Fecha de Siembra</Text>
+          <View style={styles.dateInputContainer}>
+            <Calendar size={20} color="#9ca3af" />
+            <TextInput 
+              style={styles.dateInput}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+        </View>
 
-        <div className="bg-lime-50 p-4 rounded-xl border border-lime-100 flex items-center justify-between">
-          <div>
-            <span className="font-bold text-lime-900 block">Publicar en Marketplace</span>
-            <span className="text-xs text-lime-700">Visible para compradores verificados</span>
-          </div>
-          <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-            <input type="checkbox" name="toggle" id="toggle" className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 checked:border-lime-500"/>
-            <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer checked:bg-lime-500"></label>
-          </div>
-        </div>
+        <View style={styles.marketplaceToggle}>
+          <View>
+            <Text style={styles.toggleLabel}>Publicar en Marketplace</Text>
+            <Text style={styles.toggleSubtext}>Visible para compradores verificados</Text>
+          </View>
+        </View>
 
-        <button className="w-full bg-lime-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-lime-200 hover:bg-lime-700 transition-colors mt-4">
-          Guardar Cultivo
-        </button>
-      </form>
-    </div>
+        <TouchableOpacity 
+          style={styles.submitButton}
+          onPress={() => setView('dashboard')}
+        >
+          <Text style={styles.submitButtonText}>Guardar Cultivo</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 
   const NotebookView = () => (
-     <div className="animate-in slide-in-from-right pb-24 bg-gray-50 min-h-full">
-        <div className="px-6 pt-12 pb-6 bg-white border-b border-gray-100 mb-4 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setView('dashboard')} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-              <ArrowLeft size={20} />
-            </button>
-            <h2 className="text-xl font-bold">Cuaderno de Campo</h2>
-          </div>
-        </div>
-        
-        <div className="px-6 space-y-4">
-           {/* Date Group */}
-           <div>
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Hoy</h3>
-              <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-                 <div className="flex gap-3">
-                    <div className="bg-lime-100 p-2 rounded-lg text-lime-700 h-fit"><Sprout size={18} /></div>
-                    <div>
-                       <p className="font-bold text-gray-800 text-sm">Registro de Fertilización</p>
-                       <p className="text-xs text-gray-500 mt-1">Aplicación de Urea en Lote Maíz #2. 50kg/ha.</p>
-                    </div>
-                 </div>
-              </div>
-           </div>
+    <ScrollView style={styles.notebookContainer} showsVerticalScrollIndicator={false}>
+      <View style={styles.notebookHeader}>
+        <TouchableOpacity onPress={() => setView('dashboard')} style={styles.backButton}>
+          <ArrowLeft size={20} color="#111827" />
+        </TouchableOpacity>
+        <Text style={styles.subViewTitle}>Cuaderno de Campo</Text>
+      </View>
+      
+      <View style={styles.notebookContent}>
+        <View style={styles.dateGroup}>
+          <Text style={styles.dateLabel}>Hoy</Text>
+          <View style={styles.noteCard}>
+            <View style={styles.noteRow}>
+              <View style={[styles.noteIcon, { backgroundColor: '#ecfccb' }]}>
+                <Sprout size={18} color="#65a30d" />
+              </View>
+              <View style={styles.noteTextContainer}>
+                <Text style={styles.noteTitle}>Registro de Fertilización</Text>
+                <Text style={styles.noteDesc}>Aplicación de Urea en Lote Maíz #2. 50kg/ha.</Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
-           <div>
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ayer</h3>
-              <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-                 <div className="flex gap-3">
-                    <div className="bg-blue-100 p-2 rounded-lg text-blue-700 h-fit"><CloudRain size={18} /></div>
-                    <div>
-                       <p className="font-bold text-gray-800 text-sm">Lluvia Intensa</p>
-                       <p className="text-xs text-gray-500 mt-1">15mm registrados. Se suspendió riego.</p>
-                    </div>
-                 </div>
-              </div>
-           </div>
+        <View style={styles.dateGroup}>
+          <Text style={styles.dateLabel}>Ayer</Text>
+          <View style={styles.noteCard}>
+            <View style={styles.noteRow}>
+              <View style={[styles.noteIcon, { backgroundColor: '#dbeafe' }]}>
+                <CloudRain size={18} color="#2563eb" />
+              </View>
+              <View style={styles.noteTextContainer}>
+                <Text style={styles.noteTitle}>Lluvia Intensa</Text>
+                <Text style={styles.noteDesc}>15mm registrados. Se suspendió riego.</Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
-           <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 font-medium hover:border-lime-500 hover:text-lime-600 transition-colors flex items-center justify-center gap-2">
-              <Plus size={18}/> Agregar Nota
-           </button>
-        </div>
-     </div>
+        <TouchableOpacity style={styles.addNoteButton}>
+          <Plus size={18} color="#9ca3af" />
+          <Text style={styles.addNoteText}>Agregar Nota</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 
   // --- MAIN DASHBOARD ---
 
+  if (view === 'score-detail') return <ScoreDetail />;
+  if (view === 'add-crop') return <AddCropForm />;
+  if (view === 'notebook') return <NotebookView />;
+
   return (
-    <div className="min-h-full bg-gray-50 relative">
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      {view === 'dashboard' && (
-        <>
-          <header className="px-6 pt-12 pb-6 flex justify-between items-center bg-white sticky top-0 z-20 border-b border-gray-50">
-            <div>
-              <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Bienvenido</p>
-              <h1 className="text-2xl font-bold text-gray-900">Sebastián</h1>
-            </div>
-            <div className="h-10 w-10 bg-lime-50 rounded-full flex items-center justify-center border border-lime-200">
-              <User size={20} className="text-lime-700" />
-            </div>
-          </header>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.welcomeText}>Bienvenido</Text>
+          <Text style={styles.userName}>Sebastián</Text>
+        </View>
+        <View style={styles.avatarSmall}>
+          <User size={20} color="#65a30d" />
+        </View>
+      </View>
 
-          <main className="px-6 pt-6 space-y-6 pb-24">
-            {/* Score Card */}
-            <AgroScoreGauge 
-              score={979} 
-              maxScore={1000} 
-              onClick={() => setView('score-detail')}
-            />
+      <View style={styles.mainContent}>
+        {/* Score Card */}
+        <AgroScoreGauge 
+          score={979} 
+          maxScore={1000} 
+          onClick={() => setView('score-detail')}
+        />
 
-            {/* Weather Widget */}
-            <div className="bg-gradient-to-br from-lime-500 to-green-600 rounded-3xl p-5 text-white shadow-lg shadow-lime-200/50 relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div>
-                  <p className="opacity-90 text-sm font-medium flex items-center gap-1"><User size={12}/> Finca "La Fortuna"</p>
-                  <h2 className="text-4xl font-bold mt-2">24° <span className="text-lg font-normal opacity-80">Nublado</span></h2>
-                </div>
-                <Sun size={40} className="text-yellow-300 animate-pulse" />
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-xs font-medium bg-white/10 p-3 rounded-2xl backdrop-blur-sm relative z-10">
-                <div className="flex flex-col items-center gap-1"><Droplets size={16}/> <span>65%</span></div>
-                <div className="flex flex-col items-center gap-1"><CloudRain size={16}/> <span>10mm</span></div>
-                <div className="flex flex-col items-center gap-1"><Wind size={16}/> <span>12km</span></div>
-              </div>
-            </div>
+        {/* Weather Widget */}
+        <View style={styles.weatherCard}>
+          <View style={styles.weatherHeader}>
+            <View>
+              <Text style={styles.farmName}>Finca "La Fortuna"</Text>
+              <View style={styles.tempRow}>
+                <Text style={styles.tempText}>24°</Text>
+                <Text style={styles.weatherDesc}>Nublado</Text>
+              </View>
+            </View>
+            <Sun size={40} color="#fde047" />
+          </View>
+          <View style={styles.weatherStats}>
+            <View style={styles.weatherStat}>
+              <Droplets size={16} color="#ffffff" />
+              <Text style={styles.weatherStatText}>65%</Text>
+            </View>
+            <View style={styles.weatherStat}>
+              <CloudRain size={16} color="#ffffff" />
+              <Text style={styles.weatherStatText}>10mm</Text>
+            </View>
+            <View style={styles.weatherStat}>
+              <Wind size={16} color="#ffffff" />
+              <Text style={styles.weatherStatText}>12km</Text>
+            </View>
+          </View>
+        </View>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setView('add-crop')} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-2 hover:bg-gray-50 active:scale-95 transition-all">
-                <div className="bg-lime-50 p-3 rounded-full text-lime-600"><Plus size={24}/></div>
-                <span className="text-xs font-bold text-gray-700">Registrar Cultivo</span>
-              </button>
-              <button onClick={() => setView('notebook')} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-2 hover:bg-gray-50 active:scale-95 transition-all">
-                <div className="bg-blue-50 p-3 rounded-full text-blue-600"><FileText size={24}/></div>
-                <span className="text-xs font-bold text-gray-700">Cuaderno Campo</span>
-              </button>
-            </div>
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity onPress={() => setView('add-crop')} style={styles.quickAction}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#f7fee7' }]}>
+              <Plus size={24} color="#65a30d" />
+            </View>
+            <Text style={styles.quickActionText}>Registrar Cultivo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setView('notebook')} style={styles.quickAction}>
+            <View style={[styles.quickActionIcon, { backgroundColor: '#eff6ff' }]}>
+              <FileText size={24} color="#2563eb" />
+            </View>
+            <Text style={styles.quickActionText}>Cuaderno Campo</Text>
+          </TouchableOpacity>
+        </View>
 
-            {/* Crops List */}
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-lg text-gray-800">Mis Cultivos</h3>
-                <span className="text-xs text-lime-600 font-bold">Ver todos</span>
-              </div>
-              <div className="space-y-3">
-                {CROPS_DATA.map(crop => (
-                  <div key={crop.id} className="bg-white border border-gray-100 p-4 rounded-3xl shadow-sm flex justify-between items-center active:scale-[0.98] transition-transform">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-lime-50 h-12 w-12 rounded-2xl flex items-center justify-center text-lime-600">
-                        <Sprout size={24} />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900">{crop.name}</h4>
-                        <p className="text-xs text-gray-500 font-medium">{crop.area} • {crop.status}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-end gap-1">
-                         <span className="text-xs font-bold text-gray-400">{crop.progress}%</span>
-                         <div className="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                           <div className="h-full bg-lime-500" style={{ width: `${crop.progress}%` }}></div>
-                         </div>
-                      </div>
-                      <ChevronRight size={18} className="text-gray-300" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-             {/* Prices Ticker (Mock) */}
-            <div className="overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-               <div className="flex gap-4">
-                  {[{n:'Maíz', p:'$18.5'}, {n:'Cacao', p:'$145'}, {n:'Soya', p:'$22'}, {n:'Arroz', p:'$32'}].map((p,i) => (
-                     <div key={i} className="bg-white border border-gray-100 px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap">
-                        <span className="text-xs text-gray-500">{p.n}</span>
-                        <span className="text-sm font-bold text-gray-900">{p.p}</span>
-                     </div>
-                  ))}
-               </div>
-            </div>
-
-          </main>
-        </>
-      )}
-
-      {view === 'score-detail' && <ScoreDetail />}
-      {view === 'add-crop' && <AddCropForm />}
-      {view === 'notebook' && <NotebookView />}
-    </div>
+        {/* Crops List */}
+        <View style={styles.cropsSection}>
+          <View style={styles.cropsSectionHeader}>
+            <Text style={styles.cropsSectionTitle}>Mis Cultivos</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAllLink}>Ver todos</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.cropsList}>
+            {CROPS_DATA.map(crop => (
+              <TouchableOpacity key={crop.id} style={styles.cropCard} activeOpacity={0.8}>
+                <View style={styles.cropCardLeft}>
+                  <View style={styles.cropIcon}>
+                    <Sprout size={24} color="#65a30d" />
+                  </View>
+                  <View>
+                    <Text style={styles.cropName}>{crop.name}</Text>
+                    <Text style={styles.cropMeta}>{crop.area} • {crop.status}</Text>
+                  </View>
+                </View>
+                <View style={styles.cropCardRight}>
+                  <View style={styles.cropProgress}>
+                    <Text style={styles.cropProgressText}>{crop.progress}%</Text>
+                    <View style={styles.cropProgressTrack}>
+                      <View style={[styles.cropProgressBar, { width: `${crop.progress}%` }]} />
+                    </View>
+                  </View>
+                  <ChevronRight size={18} color="#d1d5db" />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+        
+        {/* Prices Ticker */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.priceTicker}>
+          {[{n:'Maíz', p:'$18.5'}, {n:'Cacao', p:'$145'}, {n:'Soya', p:'$22'}, {n:'Arroz', p:'$32'}].map((p, i) => (
+            <View key={i} style={styles.priceItem}>
+              <Text style={styles.priceName}>{p.n}</Text>
+              <Text style={styles.priceValue}>{p.p}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f9fafb',
+  },
+  welcomeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  avatarSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f7fee7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#d9f99d',
+  },
+  mainContent: {
+    padding: 24,
+    paddingBottom: 96,
+    gap: 24,
+  },
+  weatherCard: {
+    backgroundColor: '#65a30d',
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: '#65a30d',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  weatherHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  farmName: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  tempRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: 8,
+  },
+  tempText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  weatherDesc: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginLeft: 8,
+  },
+  weatherStats: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 12,
+    justifyContent: 'space-around',
+  },
+  weatherStat: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  weatherStatText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  quickAction: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 24,
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  quickActionIcon: {
+    padding: 12,
+    borderRadius: 50,
+  },
+  quickActionText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  cropsSection: {
+    marginTop: 8,
+  },
+  cropsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cropsSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  viewAllLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#65a30d',
+  },
+  cropsList: {
+    gap: 12,
+  },
+  cropCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  cropCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  cropIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#f7fee7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cropName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  cropMeta: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  cropCardRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cropProgress: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  cropProgressText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9ca3af',
+  },
+  cropProgressTrack: {
+    width: 48,
+    height: 6,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  cropProgressBar: {
+    height: '100%',
+    backgroundColor: '#84cc16',
+    borderRadius: 3,
+  },
+  priceTicker: {
+    marginTop: 8,
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+  },
+  priceItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  priceName: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  priceValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  // Sub-view styles
+  subViewContainer: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  subViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  backButton: {
+    padding: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 50,
+  },
+  subViewTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  scoreDetailGauge: {
+    backgroundColor: '#ffffff',
+    paddingVertical: 24,
+    marginBottom: 16,
+  },
+  scoreBreakdown: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 24,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  breakdownTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  breakdownItem: {
+    marginBottom: 16,
+  },
+  breakdownLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  breakdownLabel: {
+    fontSize: 14,
+    color: '#4b5563',
+  },
+  breakdownScore: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  progressTrack: {
+    height: 10,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  tipsCard: {
+    backgroundColor: '#eff6ff',
+    marginHorizontal: 24,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 96,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  tipsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tipsTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e40af',
+  },
+  tipsList: {
+    gap: 8,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  tipBullet: {
+    color: '#3b82f6',
+  },
+  tipText: {
+    fontSize: 14,
+    color: '#1e40af',
+    flex: 1,
+  },
+  // Form styles
+  formContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  formHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  formContent: {
+    padding: 24,
+    gap: 20,
+  },
+  formGroup: {
+    gap: 8,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+  },
+  selectContainer: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+  },
+  selectText: {
+    color: '#6b7280',
+    fontSize: 14,
+  },
+  formRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  halfWidth: {
+    flex: 1,
+  },
+  formInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 14,
+    color: '#111827',
+  },
+  dateInputContainer: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dateInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111827',
+  },
+  marketplaceToggle: {
+    backgroundColor: '#f7fee7',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d9f99d',
+  },
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#365314',
+  },
+  toggleSubtext: {
+    fontSize: 12,
+    color: '#65a30d',
+    marginTop: 2,
+  },
+  submitButton: {
+    backgroundColor: '#65a30d',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 16,
+    shadowColor: '#65a30d',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  // Notebook styles
+  notebookContainer: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  notebookHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  notebookContent: {
+    padding: 24,
+    paddingBottom: 96,
+  },
+  dateGroup: {
+    marginBottom: 16,
+  },
+  dateLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  noteCard: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  noteRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  noteIcon: {
+    padding: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  noteTextContainer: {
+    flex: 1,
+  },
+  noteTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  noteDesc: {
+    fontSize: 12,
+    color: '#6b7280',
+    lineHeight: 18,
+  },
+  addNoteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  addNoteText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#9ca3af',
+  },
+});

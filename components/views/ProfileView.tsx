@@ -1,5 +1,6 @@
 import React from 'react';
-import { User, MapPin, Mail, Phone, Shield, LogOut, ChevronRight, Bell, HelpCircle } from 'lucide-react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { User, MapPin, Mail, Phone, Shield, LogOut, ChevronRight, Bell, HelpCircle } from 'lucide-react-native';
 import { UserRole, UserProfile } from '../../types';
 
 interface ProfileViewProps {
@@ -20,84 +21,283 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ role, onLogout }) => {
     verified: true
   };
 
-  const roleColor = role === 'agricultor' ? 'text-lime-600' : role === 'comprador' ? 'text-emerald-600' : 'text-blue-600';
-  const roleBg = role === 'agricultor' ? 'bg-lime-50' : role === 'comprador' ? 'bg-emerald-50' : 'bg-blue-50';
+  const getRoleColor = () => {
+    if (role === 'agricultor') return '#65a30d';
+    if (role === 'comprador') return '#059669';
+    return '#2563eb';
+  };
+
+  const getRoleBgColor = () => {
+    if (role === 'agricultor') return '#f7fee7';
+    if (role === 'comprador') return '#ecfdf5';
+    return '#eff6ff';
+  };
+
+  const roleColor = getRoleColor();
+  const roleBg = getRoleBgColor();
+
+  const settingsItems = [
+    { Icon: Bell, label: 'Notificaciones', val: 'Activadas' },
+    { Icon: Shield, label: 'Seguridad y Privacidad', val: '' },
+    { Icon: HelpCircle, label: 'Ayuda y Soporte', val: '' },
+  ];
 
   return (
-    <div className="bg-gray-50 min-h-full pb-24">
-      <div className="bg-white px-6 pt-12 pb-8 rounded-b-[2.5rem] shadow-sm mb-6">
-        <div className="flex flex-col items-center">
-          <div className={`h-24 w-24 ${roleBg} rounded-full flex items-center justify-center text-3xl font-bold ${roleColor} mb-4 ring-4 ring-white shadow-lg`}>
-            {profile.avatar}
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
-          <p className="text-gray-500 flex items-center gap-1 text-sm mt-1">
-            <MapPin size={14} /> {profile.location}
-          </p>
-          <div className={`mt-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${roleBg} ${roleColor}`}>
-            {profile.role}
-          </div>
-        </div>
-      </div>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
+        <View style={[styles.avatarContainer, { backgroundColor: roleBg }]}>
+          <Text style={[styles.avatarText, { color: roleColor }]}>{profile.avatar}</Text>
+        </View>
+        <Text style={styles.name}>{profile.name}</Text>
+        <View style={styles.locationContainer}>
+          <MapPin size={14} color="#6b7280" />
+          <Text style={styles.location}>{profile.location}</Text>
+        </View>
+        <View style={[styles.roleBadge, { backgroundColor: roleBg }]}>
+          <Text style={[styles.roleBadgeText, { color: roleColor }]}>{profile.role.toUpperCase()}</Text>
+        </View>
+      </View>
 
-      <div className="px-6 space-y-4">
+      <View style={styles.content}>
         {/* Account Info */}
-        <section>
-          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 ml-2">Cuenta</h3>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 border-b border-gray-50 flex items-center gap-3">
-              <div className="bg-gray-50 p-2 rounded-lg text-gray-600"><Mail size={18} /></div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-400">Correo</p>
-                <p className="text-sm font-medium text-gray-800">{profile.email}</p>
-              </div>
-            </div>
-            <div className="p-4 flex items-center gap-3">
-              <div className="bg-gray-50 p-2 rounded-lg text-gray-600"><Phone size={18} /></div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-400">Teléfono</p>
-                <p className="text-sm font-medium text-gray-800">{profile.phone}</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Cuenta</Text>
+          <View style={styles.card}>
+            <View style={[styles.cardItem, styles.cardItemBorder]}>
+              <View style={styles.cardItemIcon}>
+                <Mail size={18} color="#6b7280" />
+              </View>
+              <View style={styles.cardItemContent}>
+                <Text style={styles.cardItemLabel}>Correo</Text>
+                <Text style={styles.cardItemValue}>{profile.email}</Text>
+              </View>
+            </View>
+            <View style={styles.cardItem}>
+              <View style={styles.cardItemIcon}>
+                <Phone size={18} color="#6b7280" />
+              </View>
+              <View style={styles.cardItemContent}>
+                <Text style={styles.cardItemLabel}>Teléfono</Text>
+                <Text style={styles.cardItemValue}>{profile.phone}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
         {/* Settings */}
-        <section>
-          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 ml-2">Configuración</h3>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            {[
-              { icon: Bell, label: 'Notificaciones', val: 'Activadas' },
-              { icon: Shield, label: 'Seguridad y Privacidad', val: '' },
-              { icon: HelpCircle, label: 'Ayuda y Soporte', val: '' },
-            ].map((item, i) => (
-              <button key={i} className="w-full p-4 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${roleBg} ${roleColor}`}>
-                    <item.icon size={18} />
-                  </div>
-                  <span className="text-sm font-medium text-gray-800">{item.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">{item.val}</span>
-                  <ChevronRight size={16} className="text-gray-300" />
-                </div>
-              </button>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Configuración</Text>
+          <View style={styles.card}>
+            {settingsItems.map((item, i) => (
+              <TouchableOpacity 
+                key={i} 
+                style={[
+                  styles.settingsItem, 
+                  i < settingsItems.length - 1 && styles.cardItemBorder
+                ]}
+              >
+                <View style={styles.settingsItemLeft}>
+                  <View style={[styles.settingsIconContainer, { backgroundColor: roleBg }]}>
+                    <item.Icon size={18} color={roleColor} />
+                  </View>
+                  <Text style={styles.settingsLabel}>{item.label}</Text>
+                </View>
+                <View style={styles.settingsItemRight}>
+                  <Text style={styles.settingsValue}>{item.val}</Text>
+                  <ChevronRight size={16} color="#d1d5db" />
+                </View>
+              </TouchableOpacity>
             ))}
-          </div>
-        </section>
+          </View>
+        </View>
 
         {/* Logout */}
-        <button 
-          onClick={onLogout}
-          className="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center gap-2 text-red-500 font-medium hover:bg-red-50 transition-colors"
-        >
-          <LogOut size={18} />
-          Cerrar Sesión
-        </button>
+        <TouchableOpacity onPress={onLogout} style={styles.logoutButton}>
+          <LogOut size={18} color="#ef4444" />
+          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
         
-        <p className="text-center text-xs text-gray-400 pt-4">Versión 1.0.2 - WAQI App</p>
-      </div>
-    </div>
+        <Text style={styles.version}>Versión 1.0.2 - WAQI App</Text>
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  header: {
+    backgroundColor: '#ffffff',
+    paddingTop: 48,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 24,
+  },
+  avatarContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    borderWidth: 4,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  avatarText: {
+    fontSize: 30,
+    fontWeight: '700',
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 12,
+  },
+  location: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  roleBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  roleBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingBottom: 96,
+  },
+  section: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+    marginLeft: 8,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    overflow: 'hidden',
+  },
+  cardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  cardItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#f9fafb',
+  },
+  cardItemIcon: {
+    backgroundColor: '#f9fafb',
+    padding: 8,
+    borderRadius: 8,
+  },
+  cardItemContent: {
+    flex: 1,
+  },
+  cardItemLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  cardItemValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1f2937',
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  settingsItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingsIconContainer: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  settingsLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1f2937',
+  },
+  settingsItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  settingsValue: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  logoutButton: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  logoutText: {
+    color: '#ef4444',
+    fontWeight: '500',
+    fontSize: 14,
+  },
+  version: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#9ca3af',
+    paddingTop: 16,
+  },
+});
