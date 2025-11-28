@@ -165,17 +165,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
-    position: 'relative',
   },
   gauge: {
     transform: [{ rotate: '180deg' }],
   },
   centerText: {
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -50 }, { translateY: -30 }],
     alignItems: 'center',
+    justifyContent: 'center',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 40, // Offset for semi-circle gauge
   },
   scoreText: {
     fontSize: 48,

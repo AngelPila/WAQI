@@ -3,6 +3,9 @@ import Constants from "expo-constants";
 import { UserRole } from "../types";
 
 // Initialize Gemini Client
+// API key can be configured via:
+// 1. app.json extra.geminiApiKey (for EAS builds)
+// 2. EXPO_PUBLIC_GEMINI_API_KEY environment variable (for local development)
 const apiKey = Constants.expoConfig?.extra?.geminiApiKey || process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
@@ -26,7 +29,7 @@ export const sendMessageToGemini = async (
 ): Promise<string> => {
   try {
     if (!apiKey) {
-      return "Error: API key no configurada. Por favor configura EXPO_PUBLIC_GEMINI_API_KEY.";
+      return "Error: API key no configurada. Configura EXPO_PUBLIC_GEMINI_API_KEY en tu entorno o geminiApiKey en app.json.";
     }
     
     const modelId = "gemini-2.5-flash"; 

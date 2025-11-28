@@ -32,7 +32,8 @@
     "extra": {
       "eas": {
         "projectId": "waqi-app"
-      }
+      },
+      "geminiApiKey": ""
     },
     "plugins": [
       "expo-asset"
