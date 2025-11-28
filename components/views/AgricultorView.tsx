@@ -10,12 +10,23 @@ import {
 } from 'react-native';
 import { 
   User, CloudRain, Sun, Wind, Droplets, Plus, Sprout, 
-  ChevronRight, ArrowLeft, Calendar, FileText, CheckCircle2 
+  ChevronRight, ArrowLeft, Calendar, FileText, CheckCircle2, TrendingUp 
 } from 'lucide-react-native';
 import { AgroScoreGauge } from '../ui/AgroScoreGauge';
 import { Crop } from '../../types';
 
-type ViewState = 'dashboard' | 'score-detail' | 'add-crop' | 'notebook';
+type ViewState = 'dashboard' | 'score-detail' | 'add-crop' | 'notebook' | 'request-investment';
+
+type InvestmentRequest = {
+  id: string;
+  title: string;
+  amount: string;
+  description: string;
+  roi?: string;
+  term?: string;
+  status?: 'Pendiente' | 'Aprobado' | 'Rechazado';
+  createdAt: string;
+};
 
 const CROPS_DATA: Crop[] = [
   { id: 1, name: 'Maíz Híbrido', area: '15 ha', status: 'Crecimiento', progress: 65, score: 8.5 },
@@ -25,6 +36,7 @@ const CROPS_DATA: Crop[] = [
 export const AgricultorView: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [publishMarketplace, setPublishMarketplace] = useState(false);
+  const [investmentRequests, setInvestmentRequests] = useState<InvestmentRequest[]>([]);
 
   // --- SUB-VIEWS ---
   const ScoreDetail = () => (
@@ -46,22 +58,25 @@ export const AgricultorView: React.FC = () => {
         <View className="px-6 pb-24">
           <View className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mb-4">
             <Text className="font-bold mb-4 text-gray-900">Breakdown del Puntaje</Text>
-            {[
-              { label: 'Historial Productivo', val: 'Excelente', score: 98, color: '#22c55e' },
-              { label: 'Salud Financiera', val: 'Bueno', score: 85, color: '#84cc16' },
-              { label: 'Riesgo de Zona', val: 'Bajo', score: 92, color: '#10b981' },
-              { label: 'Validación de Tierras', val: 'Verificado', score: 100, color: '#16a34a' }
-            ].map((item, i) => (
-              <View key={i} className="mb-4">
-                <View className="flex-row justify-between mb-1.5">
-                  <Text className="text-sm text-gray-600">{item.label}</Text>
-                  <Text className="font-bold text-gray-900 text-sm">{item.score}/100</Text>
+            {(() => {
+              const breakdown = [
+                { label: 'Historial Productivo', score: 98, color: '#22c55e' },
+                { label: 'Salud Financiera', score: 85, color: '#84cc16' },
+                { label: 'Riesgo de Zona', score: 92, color: '#10b981' },
+                { label: 'Validación de Tierras', score: 100, color: '#16a34a' },
+              ];
+              return breakdown.map((item, i) => (
+                <View key={i} className="mb-4">
+                  <View className="flex-row justify-between mb-1.5">
+                    <Text className="text-sm text-gray-600">{item.label}</Text>
+                    <Text className="font-bold text-gray-900 text-sm">{item.score}/100</Text>
+                  </View>
+                  <View className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <View style={{ width: `${item.score}%`, backgroundColor: item.color }} className="h-full" />
+                  </View>
                 </View>
-                <View className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                  <View style={{ width: `${item.score}%`, backgroundColor: item.color }} className="h-full" />
-                </View>
-              </View>
-            ))}
+              ));
+            })()}
           </View>
 
           <View className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
@@ -159,6 +174,135 @@ export const AgricultorView: React.FC = () => {
     </SafeAreaView>
   );
 
+  const RequestInvestmentFormInner: React.FC = () => {
+    const [title, setTitle] = useState('');
+    const [amount, setAmount] = useState('');
+    const [description, setDescription] = useState('');
+    const [roi, setRoi] = useState('');
+    const [term, setTerm] = useState('');
+
+    const submit = () => {
+      if (!title || !amount) {
+        // simple validation: require title and amount
+        return setView('request-investment');
+      }
+      const newReq: InvestmentRequest = {
+        id: String(Date.now()),
+        title,
+        amount,
+        description,
+        roi,
+        term,
+        status: 'Pendiente',
+        createdAt: new Date().toLocaleDateString(),
+      };
+      setInvestmentRequests(prev => [newReq, ...prev]);
+      setView('dashboard');
+    };
+
+    return (
+      <>
+        <View>
+          <Text className="text-sm font-bold text-gray-700 mb-2">Título del Proyecto</Text>
+          <TextInput 
+            className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+            placeholder="Ej: Expansión de Riego"
+            placeholderTextColor="#9ca3af"
+            value={title}
+            onChangeText={setTitle}
+          />
+        </View>
+
+        <View>
+          <Text className="text-sm font-bold text-gray-700 mb-2">Monto Solicitado ($)</Text>
+          <TextInput 
+            className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+            placeholder="5000"
+            keyboardType="numeric"
+            placeholderTextColor="#9ca3af"
+            value={amount}
+            onChangeText={setAmount}
+          />
+        </View>
+
+        <View>
+           <Text className="text-sm font-bold text-gray-700 mb-2">Descripción del Proyecto</Text>
+           <TextInput 
+             className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900 h-32"
+             placeholder="Describe en qué utilizarás la inversión..."
+             placeholderTextColor="#9ca3af"
+             multiline
+             textAlignVertical="top"
+             value={description}
+             onChangeText={setDescription}
+           />
+        </View>
+
+        <View className="flex-row gap-4">
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-gray-700 mb-2">ROI Estimado (%)</Text>
+            <TextInput 
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+              placeholder="15"
+              keyboardType="numeric"
+              placeholderTextColor="#9ca3af"
+              value={roi}
+              onChangeText={setRoi}
+            />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-gray-700 mb-2">Plazo (Meses)</Text>
+            <TextInput 
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+              placeholder="12"
+              keyboardType="numeric"
+              placeholderTextColor="#9ca3af"
+              value={term}
+              onChangeText={setTerm}
+            />
+          </View>
+        </View>
+
+        <View className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+           <View className="flex-row items-center gap-2 mb-2">
+              <Text className="font-bold text-purple-900">Tu AgroScore Actual: 979</Text>
+           </View>
+           <Text className="text-xs text-purple-700">
+             Un puntaje alto te permite acceder a tasas preferenciales y mayor visibilidad ante inversionistas.
+           </Text>
+        </View>
+
+        <TouchableOpacity 
+          onPress={submit}
+          className="bg-purple-600 py-4 rounded-xl shadow-lg mt-4"
+          activeOpacity={0.8}
+        >
+          <Text className="text-white font-bold text-lg text-center">Publicar Solicitud</Text>
+        </TouchableOpacity>
+      </>
+    );
+  };
+
+  const RequestInvestmentForm = () => (
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="px-6 pt-12 pb-6 border-b border-gray-100 mb-6">
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity onPress={() => setView('dashboard')} className="p-2 bg-gray-100 rounded-full">
+            <ArrowLeft size={20} color="#374151" />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold text-gray-900">Solicitar Inversión</Text>
+        </View>
+      </View>
+
+      <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+        <View className="gap-5 pb-24">
+          {/* Controlled form fields - stored locally and submitted to parent state */}
+          <RequestInvestmentFormInner />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+
   const NotebookView = () => (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="px-6 pt-12 pb-6 bg-white border-b border-gray-100 mb-4">
@@ -216,6 +360,7 @@ export const AgricultorView: React.FC = () => {
   if (view === 'score-detail') return <ScoreDetail />;
   if (view === 'add-crop') return <AddCropForm />;
   if (view === 'notebook') return <NotebookView />;
+  if (view === 'request-investment') return <RequestInvestmentForm />;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -280,8 +425,9 @@ export const AgricultorView: React.FC = () => {
               <View className="bg-lime-50 p-3 rounded-full">
                 <Plus size={24} color="#65a30d" />
               </View>
-              <Text className="text-xs font-bold text-gray-700">Registrar Cultivo</Text>
+              <Text className="text-xs font-bold text-gray-700 text-center">Registrar Cultivo</Text>
             </TouchableOpacity>
+            
             <TouchableOpacity 
               onPress={() => setView('notebook')} 
               className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 items-center gap-2"
@@ -290,8 +436,51 @@ export const AgricultorView: React.FC = () => {
               <View className="bg-blue-50 p-3 rounded-full">
                 <FileText size={24} color="#2563eb" />
               </View>
-              <Text className="text-xs font-bold text-gray-700">Cuaderno Campo</Text>
+              <Text className="text-xs font-bold text-gray-700 text-center">Cuaderno Campo</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => setView('request-investment')} 
+              className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 items-center gap-2"
+              activeOpacity={0.8}
+            >
+              <View className="bg-purple-50 p-3 rounded-full">
+                <TrendingUp size={24} color="#9333ea" />
+              </View>
+              <Text className="text-xs font-bold text-gray-700 text-center">Pedir Inversión</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Investment Requests Section */}
+          <View>
+            <View className="flex-row justify-between items-center mb-3 mt-2">
+              <Text className="font-bold text-lg text-gray-800">Mis Solicitudes de Inversión</Text>
+              <Text className="text-xs text-purple-600 font-bold">Ver todas</Text>
+            </View>
+
+            {investmentRequests.length === 0 ? (
+              <View className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
+                <Text className="text-sm text-gray-600">No tienes solicitudes activas. Crea una nueva solicitud.</Text>
+                <TouchableOpacity onPress={() => setView('request-investment')} className="mt-3 bg-purple-600 py-3 rounded-xl">
+                  <Text className="text-white text-center font-bold">Nueva Solicitud</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {investmentRequests.map(req => (
+                  <View key={req.id} className="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View>
+                        <Text className="font-bold text-gray-800">{req.title}</Text>
+                        <Text className="text-xs text-gray-500">{req.createdAt} • {req.status}</Text>
+                      </View>
+                      <Text className="font-bold text-gray-900">${req.amount}</Text>
+                    </View>
+                    <Text className="text-sm text-gray-700">{req.description}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
 
           {/* Crops List */}
