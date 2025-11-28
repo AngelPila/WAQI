@@ -10,21 +10,35 @@ import {
 } from 'react-native';
 import { 
   User, CloudRain, Sun, Wind, Droplets, Plus, Sprout, 
-  ChevronRight, ArrowLeft, Calendar, FileText, CheckCircle2 
+  ChevronRight, ArrowLeft, Calendar, FileText, CheckCircle2,
+  DollarSign, TrendingUp, Briefcase
 } from 'lucide-react-native';
 import { AgroScoreGauge } from '../ui/AgroScoreGauge';
-import { Crop } from '../../types';
+import { Crop, InvestmentRequest } from '../../types';
 
-type ViewState = 'dashboard' | 'score-detail' | 'add-crop' | 'notebook';
+type ViewState = 'dashboard' | 'score-detail' | 'add-crop' | 'notebook' | 'seek-investment';
 
 const CROPS_DATA: Crop[] = [
   { id: 1, name: 'Maíz Híbrido', area: '15 ha', status: 'Crecimiento', progress: 65, score: 8.5 },
   { id: 2, name: 'Soya', area: '8 ha', status: 'Siembra', progress: 10, score: 9.2 },
 ];
 
+const INVESTMENT_REQUESTS_DATA: InvestmentRequest[] = [
+  { id: 1, title: 'Expansión Cultivo Maíz', description: 'Necesito inversión para expandir 10 hectáreas adicionales de maíz híbrido', amountNeeded: '$15,000', cropType: 'Maíz', area: '10 ha', estimatedROI: '15-18%', status: 'activa', createdAt: 'Hace 2 días' },
+];
+
 export const AgricultorView: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [publishMarketplace, setPublishMarketplace] = useState(false);
+  const [investmentRequests, setInvestmentRequests] = useState<InvestmentRequest[]>(INVESTMENT_REQUESTS_DATA);
+  
+  // Form state for new investment request
+  const [newInvestmentTitle, setNewInvestmentTitle] = useState('');
+  const [newInvestmentDescription, setNewInvestmentDescription] = useState('');
+  const [newInvestmentAmount, setNewInvestmentAmount] = useState('');
+  const [newInvestmentCropType, setNewInvestmentCropType] = useState('');
+  const [newInvestmentArea, setNewInvestmentArea] = useState('');
+  const [newInvestmentROI, setNewInvestmentROI] = useState('');
 
   // --- SUB-VIEWS ---
   const ScoreDetail = () => (
@@ -212,10 +226,159 @@ export const AgricultorView: React.FC = () => {
     </SafeAreaView>
   );
 
+  const handleSaveInvestmentRequest = () => {
+    if (!newInvestmentTitle || !newInvestmentAmount) return;
+    
+    const newRequest: InvestmentRequest = {
+      id: investmentRequests.length + 1,
+      title: newInvestmentTitle,
+      description: newInvestmentDescription,
+      amountNeeded: newInvestmentAmount.startsWith('$') ? newInvestmentAmount : `$${newInvestmentAmount}`,
+      cropType: newInvestmentCropType,
+      area: newInvestmentArea ? `${newInvestmentArea} ha` : '',
+      estimatedROI: newInvestmentROI ? `${newInvestmentROI}%` : '',
+      status: 'activa',
+      createdAt: 'Ahora',
+    };
+    
+    setInvestmentRequests([newRequest, ...investmentRequests]);
+    
+    // Reset form
+    setNewInvestmentTitle('');
+    setNewInvestmentDescription('');
+    setNewInvestmentAmount('');
+    setNewInvestmentCropType('');
+    setNewInvestmentArea('');
+    setNewInvestmentROI('');
+    
+    setView('dashboard');
+  };
+
+  const SeekInvestmentForm = () => (
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="px-6 pt-12 pb-6 border-b border-gray-100 mb-6">
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity onPress={() => setView('dashboard')} className="p-2 bg-gray-100 rounded-full">
+            <ArrowLeft size={20} color="#374151" />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold text-gray-900">Buscar Inversión</Text>
+        </View>
+      </View>
+
+      <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+        <View className="gap-5 pb-24">
+          {/* Info Banner */}
+          <View className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex-row gap-3">
+            <View className="bg-purple-100 p-2 rounded-lg">
+              <DollarSign size={20} color="#7c3aed" />
+            </View>
+            <View className="flex-1">
+              <Text className="font-bold text-purple-900 text-sm">Publica tu proyecto</Text>
+              <Text className="text-xs text-purple-700 mt-1">
+                Los inversionistas verificados podrán ver tu solicitud y contactarte directamente.
+              </Text>
+            </View>
+          </View>
+
+          <View>
+            <Text className="text-sm font-bold text-gray-700 mb-2">Título del Proyecto *</Text>
+            <TextInput 
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+              placeholder="Ej: Expansión de cultivo de cacao"
+              placeholderTextColor="#9ca3af"
+              value={newInvestmentTitle}
+              onChangeText={setNewInvestmentTitle}
+            />
+          </View>
+
+          <View>
+            <Text className="text-sm font-bold text-gray-700 mb-2">Descripción</Text>
+            <TextInput 
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+              placeholder="Describe tu proyecto y necesidades de inversión..."
+              placeholderTextColor="#9ca3af"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              value={newInvestmentDescription}
+              onChangeText={setNewInvestmentDescription}
+            />
+          </View>
+
+          <View className="flex-row gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-gray-700 mb-2">Monto Necesario *</Text>
+              <TextInput 
+                className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+                placeholder="$0"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+                value={newInvestmentAmount}
+                onChangeText={setNewInvestmentAmount}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-gray-700 mb-2">ROI Estimado</Text>
+              <TextInput 
+                className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+                placeholder="15%"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+                value={newInvestmentROI}
+                onChangeText={setNewInvestmentROI}
+              />
+            </View>
+          </View>
+
+          <View className="flex-row gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-gray-700 mb-2">Tipo de Cultivo</Text>
+              <TextInput 
+                className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+                placeholder="Maíz, Soya, etc."
+                placeholderTextColor="#9ca3af"
+                value={newInvestmentCropType}
+                onChangeText={setNewInvestmentCropType}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-gray-700 mb-2">Área (Has)</Text>
+              <TextInput 
+                className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-900"
+                placeholder="0"
+                placeholderTextColor="#9ca3af"
+                keyboardType="numeric"
+                value={newInvestmentArea}
+                onChangeText={setNewInvestmentArea}
+              />
+            </View>
+          </View>
+
+          <View className="bg-green-50 p-4 rounded-xl border border-green-100 flex-row items-center gap-3">
+            <CheckCircle2 size={20} color="#16a34a" />
+            <View className="flex-1">
+              <Text className="font-bold text-green-900 text-sm">Tu AgroScore te respalda</Text>
+              <Text className="text-xs text-green-700">Un puntaje alto aumenta tu credibilidad ante inversionistas</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            onPress={handleSaveInvestmentRequest}
+            className="bg-purple-600 py-4 rounded-xl shadow-lg mt-4"
+            activeOpacity={0.8}
+          >
+            <Text className="text-white font-bold text-lg text-center">Publicar Solicitud</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+
   // --- MAIN DASHBOARD ---
   if (view === 'score-detail') return <ScoreDetail />;
   if (view === 'add-crop') return <AddCropForm />;
   if (view === 'notebook') return <NotebookView />;
+  if (view === 'seek-investment') return <SeekInvestmentForm />;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -271,28 +434,103 @@ export const AgricultorView: React.FC = () => {
           </View>
 
           {/* Quick Actions */}
-          <View className="flex-row gap-4">
+          <View className="gap-3">
+            <View className="flex-row gap-3">
+              <TouchableOpacity 
+                onPress={() => setView('add-crop')} 
+                className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 items-center gap-2"
+                activeOpacity={0.8}
+              >
+                <View className="bg-lime-50 p-3 rounded-full">
+                  <Plus size={24} color="#65a30d" />
+                </View>
+                <Text className="text-xs font-bold text-gray-700">Registrar Cultivo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setView('notebook')} 
+                className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 items-center gap-2"
+                activeOpacity={0.8}
+              >
+                <View className="bg-blue-50 p-3 rounded-full">
+                  <FileText size={24} color="#2563eb" />
+                </View>
+                <Text className="text-xs font-bold text-gray-700">Cuaderno Campo</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Buscar Inversión Button */}
             <TouchableOpacity 
-              onPress={() => setView('add-crop')} 
-              className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 items-center gap-2"
+              onPress={() => setView('seek-investment')} 
+              className="bg-purple-600 p-4 rounded-3xl shadow-lg flex-row items-center justify-center gap-3"
               activeOpacity={0.8}
             >
-              <View className="bg-lime-50 p-3 rounded-full">
-                <Plus size={24} color="#65a30d" />
+              <View className="bg-white/20 p-2 rounded-full">
+                <DollarSign size={20} color="white" />
               </View>
-              <Text className="text-xs font-bold text-gray-700">Registrar Cultivo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => setView('notebook')} 
-              className="flex-1 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 items-center gap-2"
-              activeOpacity={0.8}
-            >
-              <View className="bg-blue-50 p-3 rounded-full">
-                <FileText size={24} color="#2563eb" />
+              <View>
+                <Text className="text-white font-bold text-sm">Busco Inversión</Text>
+                <Text className="text-purple-200 text-xs">Publica tu proyecto agrícola</Text>
               </View>
-              <Text className="text-xs font-bold text-gray-700">Cuaderno Campo</Text>
+              <ChevronRight size={20} color="white" />
             </TouchableOpacity>
           </View>
+
+          {/* Investment Requests Section */}
+          {investmentRequests.length > 0 && (
+            <View>
+              <View className="flex-row justify-between items-center mb-3">
+                <View className="flex-row items-center gap-2">
+                  <TrendingUp size={18} color="#7c3aed" />
+                  <Text className="font-bold text-lg text-gray-800">Mis Solicitudes de Inversión</Text>
+                </View>
+                <Text className="text-xs text-purple-600 font-bold">Ver todas</Text>
+              </View>
+              <View className="gap-3">
+                {investmentRequests.map(request => (
+                  <View 
+                    key={request.id} 
+                    className="bg-white border border-purple-100 p-4 rounded-3xl shadow-sm"
+                  >
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View className="flex-row items-center gap-3 flex-1">
+                        <View className="bg-purple-50 h-12 w-12 rounded-2xl items-center justify-center">
+                          <Briefcase size={24} color="#7c3aed" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-bold text-gray-900">{request.title}</Text>
+                          <Text className="text-xs text-gray-500 font-medium">{request.cropType} • {request.area}</Text>
+                        </View>
+                      </View>
+                      <View className={`px-2 py-1 rounded-full ${
+                        request.status === 'activa' ? 'bg-green-100' : 
+                        request.status === 'pendiente' ? 'bg-yellow-100' : 'bg-blue-100'
+                      }`}>
+                        <Text className={`text-xs font-bold capitalize ${
+                          request.status === 'activa' ? 'text-green-700' : 
+                          request.status === 'pendiente' ? 'text-yellow-700' : 'text-blue-700'
+                        }`}>{request.status}</Text>
+                      </View>
+                    </View>
+                    <View className="flex-row justify-between items-center mt-2 pt-2 border-t border-gray-50">
+                      <View className="flex-row gap-4">
+                        <View>
+                          <Text className="text-xs text-gray-400">Monto</Text>
+                          <Text className="text-sm font-bold text-purple-600">{request.amountNeeded}</Text>
+                        </View>
+                        {request.estimatedROI && (
+                          <View>
+                            <Text className="text-xs text-gray-400">ROI Est.</Text>
+                            <Text className="text-sm font-bold text-green-600">{request.estimatedROI}</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-xs text-gray-400">{request.createdAt}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Crops List */}
           <View>

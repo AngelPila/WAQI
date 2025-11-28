@@ -62,3 +62,15 @@ export interface UserProfile {
   joinDate: string;
   verified: boolean;
 }
+
+export interface InvestmentRequest {
+  id: number;
+  title: string;
+  description: string;
+  amountNeeded: string;
+  cropType: string;
+  area: string;
+  estimatedROI: string;
+  status: 'activa' | 'pendiente' | 'financiada';
+  createdAt: string;
+}
