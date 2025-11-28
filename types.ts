@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react-native';
 
 export type UserRole = 'agricultor' | 'comprador' | 'inversionista';
 export type AppScreen = 'onboarding' | 'auth' | 'app';

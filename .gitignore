@@ -22,3 +22,33 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Expo
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+.env.local
+.env.*.local
+
+# Native builds
+ios/
+android/
+
+# Metro
+.metro-health-check*
+
+# Testing
+coverage/
+
+# Misc
+.env
+*.pem
+
+# Vite cache
+.vite/

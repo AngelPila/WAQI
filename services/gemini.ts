@@ -1,8 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 import { UserRole } from "../types";
+import Constants from 'expo-constants';
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini Client - Get API key from Expo Constants or environment
+const getApiKey = (): string => {
+  // Try to get from Expo Constants extra
+  const apiKey = Constants.expoConfig?.extra?.geminiApiKey || 
+                 Constants.manifest?.extra?.geminiApiKey ||
+                 '';
+  return apiKey;
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 const ROLE_PROMPTS: Record<UserRole, string> = {
   agricultor: `Eres "CampoIA", un ingeniero agrónomo experto en Ecuador. 
@@ -23,6 +32,11 @@ export const sendMessageToGemini = async (
   role: UserRole
 ): Promise<string> => {
   try {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      return "API Key no configurada. Por favor, configura GEMINI_API_KEY en app.json extra.";
+    }
+
     const modelId = "gemini-2.5-flash"; 
     
     const response = await ai.models.generateContent({
