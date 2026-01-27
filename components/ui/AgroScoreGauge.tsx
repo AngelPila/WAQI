@@ -94,21 +94,23 @@ export const AgroScoreGauge: React.FC<AgroScoreGaugeProps> = ({
         </View>
       </View>
 
-      <View className="items-center -mt-6">
-        <Text className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Score crediticio</Text>
-        <TouchableOpacity className="flex-row items-center gap-1 mt-2">
+      <View className="items-center -mt-6 w-full">
+        <View className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+          <Text className="text-xs text-gray-600 font-bold uppercase tracking-wide text-center">Score Crediticio</Text>
+        </View>
+        <TouchableOpacity className="flex-row items-center gap-1 mt-3">
           <Text className="text-xs text-blue-500 font-medium">¿Qué significa este número?</Text>
           <ChevronRight size={12} color="#3b82f6" />
         </TouchableOpacity>
       </View>
 
       {variant === 'card' && (
-        <View className="w-full border-t border-gray-100 mt-6 pt-4 flex-row justify-between items-center">
-          <View className="flex-row">
-            <Text className="font-extrabold text-red-700 tracking-tighter text-sm">WAQI</Text>
-            <Text className="text-gray-400 font-normal text-sm">Score</Text>
+        <View className="w-full border-t border-gray-100 mt-6 pt-4 flex-row justify-between items-center bg-lime-50 -mx-6 px-6 -mb-6 pb-6 rounded-b-3xl">
+          <View className="flex-row items-center gap-1">
+            <Text className="font-extrabold text-lime-700 tracking-tighter text-sm">WAQI</Text>
+            <Text className="text-lime-600 font-bold text-sm">Score</Text>
           </View>
-          <Text className="text-xs text-gray-400">Actualizado: 25/06/2024</Text>
+          <Text className="text-xs text-lime-700 font-medium">Actualizado: 25/06/2024</Text>
         </View>
       )}
     </TouchableOpacity>
