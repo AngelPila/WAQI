@@ -9,7 +9,7 @@ import { AgricultorView } from './components/views/AgricultorView';
 import { CompradorView } from './components/views/CompradorView';
 import { InversionistaView } from './components/views/InversionistaView';
 import { ProfileView } from './components/views/ProfileView';
-import { CommunityFeed } from './components/shared/CommunityFeed';
+import CommunityFeed from './components/shared/CommunityFeed';
 import { AIChat } from './components/AIChat';
 
 type Tab = 'home' | 'community' | 'profile';

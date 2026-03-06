@@ -34,7 +34,7 @@ export const AIChat: React.FC<AIChatProps> = ({ role, isOpen, setIsOpen }) => {
       };
       setMessages([{ id: 'init', role: 'model', text: initialGreetings[role] }]);
     }
-  }, [isOpen, role, messages.length]);
+  }, [isOpen, role]);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
